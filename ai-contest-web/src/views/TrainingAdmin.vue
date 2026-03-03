@@ -2,12 +2,33 @@
   <div class="training-admin-page">
     <section class="page-header">
       <div class="container">
-        <h1>培训资料配置管理</h1>
-        <p>管理培训资料数据，支持导入、编辑、删除操作</p>
+        <h1>后台管理</h1>
+        <p>管理培训资料和报名信息</p>
       </div>
     </section>
 
-    <section class="toolbar">
+    <section class="tabs-section">
+      <div class="container">
+        <div class="tabs">
+          <button 
+            class="tab-btn" 
+            :class="{ active: activeTab === 'training' }"
+            @click="activeTab = 'training'"
+          >
+            培训资料管理
+          </button>
+          <button 
+            class="tab-btn" 
+            :class="{ active: activeTab === 'registration' }"
+            @click="activeTab = 'registration'"
+          >
+            报名信息管理
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="toolbar" v-show="activeTab === 'training'">
       <div class="container">
         <div class="toolbar-content">
           <div class="toolbar-left">
@@ -38,7 +59,25 @@
       </div>
     </section>
 
-    <section class="container main-content">
+    <section class="toolbar" v-show="activeTab === 'registration'">
+      <div class="container">
+        <div class="toolbar-content">
+          <div class="toolbar-left">
+            <span class="stats">共 {{ registrations.length }} 条报名记录</span>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-primary" @click="exportToExcel" :disabled="registrations.length === 0">
+              导出Excel
+            </button>
+            <button class="btn btn-danger" @click="clearAllRegistrations">
+              清空全部
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container main-content" v-show="activeTab === 'training'">
       <div class="manage-list">
         <div class="manage-item" v-for="training in trainings" :key="training.id">
           <div class="manage-item-index">{{ trainings.indexOf(training) + 1 }}</div>
@@ -57,6 +96,31 @@
       <div v-if="trainings.length === 0" class="empty-state">
         <p>暂无培训资料</p>
         <p class="hint">请点击"添加培训"或"导入培训资料"按钮添加数据</p>
+      </div>
+    </section>
+
+    <section class="container main-content" v-show="activeTab === 'registration'">
+      <div class="manage-list">
+        <div class="manage-item registration-item" v-for="reg in registrations" :key="reg.id">
+          <div class="manage-item-index">{{ registrations.indexOf(reg) + 1 }}</div>
+          <div class="manage-item-info">
+            <h4>{{ reg.workName }}</h4>
+            <p class="reg-meta">
+              <span>参赛人：{{ reg.userName }}</span>
+              <span>工号：{{ reg.userEmployeeId }}</span>
+              <span>提交时间：{{ formatDate(reg.createdAt) }}</span>
+            </p>
+          </div>
+          <div class="manage-item-actions">
+            <button class="btn btn-outline btn-sm" @click="viewRegistration(reg)">查看</button>
+            <button class="btn btn-danger btn-sm" @click="deleteRegistration(reg.id)">删除</button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="registrations.length === 0" class="empty-state">
+        <p>暂无报名记录</p>
+        <p class="hint">等待参赛者提交报名信息</p>
       </div>
     </section>
 
@@ -144,6 +208,36 @@
       </template>
     </Modal>
 
+    <Modal v-model="showViewModal" title="报名详情" width="600px">
+      <div class="detail-section" v-if="viewingRegistration">
+        <div class="detail-item">
+          <label>作品名称</label>
+          <p>{{ viewingRegistration.workName }}</p>
+        </div>
+        <div class="detail-item">
+          <label>作品概述</label>
+          <p class="description-text">{{ viewingRegistration.workDescription }}</p>
+        </div>
+        <div class="detail-row">
+          <div class="detail-item">
+            <label>参赛人姓名</label>
+            <p>{{ viewingRegistration.userName }}</p>
+          </div>
+          <div class="detail-item">
+            <label>参赛人工号</label>
+            <p>{{ viewingRegistration.userEmployeeId }}</p>
+          </div>
+        </div>
+        <div class="detail-item">
+          <label>提交时间</label>
+          <p>{{ formatDate(viewingRegistration.createdAt) }}</p>
+        </div>
+      </div>
+      <template #footer>
+        <button class="btn btn-primary" @click="showViewModal = false">关闭</button>
+      </template>
+    </Modal>
+
     <Modal v-model="showConfirmModal" title="确认操作" width="400px">
       <p class="confirm-message">{{ confirmMessage }}</p>
       <template #footer>
@@ -157,16 +251,22 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import Modal from '../components/Modal.vue'
+import * as XLSX from 'xlsx'
 
-const STORAGE_KEY = 'ai-contest-trainings'
+const TRAINING_STORAGE_KEY = 'ai-contest-trainings'
+const REGISTRATION_STORAGE_KEY = 'ai-contest-registrations'
 
+const activeTab = ref('training')
 const trainings = ref([])
+const registrations = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showViewModal = ref(false)
 const showConfirmModal = ref(false)
 const confirmMessage = ref('')
 const pendingAction = ref(null)
 const pendingImportData = ref([])
+const viewingRegistration = ref(null)
 
 const newTraining = ref({
   name: '',
@@ -186,14 +286,36 @@ const editFileInput = ref(null)
 const importFileInput = ref(null)
 
 const loadTrainings = () => {
-  const data = localStorage.getItem(STORAGE_KEY)
+  const data = localStorage.getItem(TRAINING_STORAGE_KEY)
   if (data) {
     trainings.value = JSON.parse(data)
   }
 }
 
 const saveTrainings = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(trainings.value))
+  localStorage.setItem(TRAINING_STORAGE_KEY, JSON.stringify(trainings.value))
+}
+
+const loadRegistrations = () => {
+  const data = localStorage.getItem(REGISTRATION_STORAGE_KEY)
+  if (data) {
+    registrations.value = JSON.parse(data)
+  }
+}
+
+const saveRegistrations = () => {
+  localStorage.setItem(REGISTRATION_STORAGE_KEY, JSON.stringify(registrations.value))
+}
+
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 const openVideo = (url) => {
@@ -297,6 +419,68 @@ const clearAllTrainings = () => {
     saveTrainings()
   }
   showConfirmModal.value = true
+}
+
+const viewRegistration = (reg) => {
+  viewingRegistration.value = reg
+  showViewModal.value = true
+}
+
+const deleteRegistration = (id) => {
+  const reg = registrations.value.find(r => r.id === id)
+  confirmMessage.value = `确定要删除"${reg.workName}"的报名记录吗？`
+  pendingAction.value = () => {
+    registrations.value = registrations.value.filter(r => r.id !== id)
+    saveRegistrations()
+  }
+  showConfirmModal.value = true
+}
+
+const clearAllRegistrations = () => {
+  if (registrations.value.length === 0) {
+    alert('当前没有报名记录')
+    return
+  }
+  confirmMessage.value = `确定要清空全部 ${registrations.value.length} 条报名记录吗？此操作不可恢复！`
+  pendingAction.value = () => {
+    registrations.value = []
+    saveRegistrations()
+  }
+  showConfirmModal.value = true
+}
+
+const exportToExcel = () => {
+  if (registrations.value.length === 0) {
+    alert('没有可导出的数据')
+    return
+  }
+
+  const exportData = registrations.value.map((reg, index) => ({
+    '序号': index + 1,
+    '作品名称': reg.workName,
+    '作品概述': reg.workDescription,
+    '参赛人姓名': reg.userName,
+    '参赛人工号': reg.userEmployeeId,
+    '提交时间': formatDate(reg.createdAt)
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData)
+  
+  const colWidths = [
+    { wch: 6 },
+    { wch: 30 },
+    { wch: 60 },
+    { wch: 15 },
+    { wch: 15 },
+    { wch: 20 }
+  ]
+  worksheet['!cols'] = colWidths
+
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, '报名信息')
+
+  const fileName = `报名信息_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`
+  XLSX.writeFile(workbook, fileName)
 }
 
 const cancelConfirm = () => {
@@ -426,6 +610,7 @@ const parseCSVLine = (line) => {
 
 onMounted(() => {
   loadTrainings()
+  loadRegistrations()
 })
 </script>
 
@@ -458,6 +643,47 @@ onMounted(() => {
   opacity: 0.9;
   max-width: 600px;
   margin: 0 auto;
+}
+
+.tabs-section {
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+}
+
+.tab-btn {
+  padding: 18px 35px;
+  font-size: 15px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.tab-btn:hover {
+  color: #667eea;
+}
+
+.tab-btn.active {
+  color: #667eea;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 3px 3px 0 0;
 }
 
 .toolbar {
@@ -512,9 +738,14 @@ onMounted(() => {
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-outline {
@@ -604,6 +835,17 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
+}
+
+.registration-item .manage-item-info p {
+  white-space: normal;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.reg-meta span {
+  color: #888;
 }
 
 .manage-item-actions {
@@ -696,7 +938,61 @@ onMounted(() => {
   text-align: center;
 }
 
+.detail-section {
+  padding: 10px 0;
+}
+
+.detail-item {
+  margin-bottom: 20px;
+}
+
+.detail-item label {
+  display: block;
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.detail-item p {
+  margin: 0;
+  font-size: 15px;
+  color: #333;
+}
+
+.detail-item .description-text {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
 @media (max-width: 768px) {
+  .tabs {
+    flex-direction: column;
+  }
+
+  .tab-btn {
+    text-align: left;
+    padding: 15px 20px;
+  }
+
+  .tab-btn.active::after {
+    display: none;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  }
+
   .toolbar-content {
     flex-direction: column;
     align-items: stretch;
@@ -715,6 +1011,10 @@ onMounted(() => {
     width: 100%;
     justify-content: flex-end;
     margin-top: 10px;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
   }
 }
 </style>

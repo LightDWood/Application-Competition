@@ -40,6 +40,15 @@
                 培训资料
               </router-link>
             </li>
+            <li>
+              <router-link 
+                to="/registration" 
+                :class="{ active: activeMenu === 'registration' }"
+                @click="menuOpen = false"
+              >
+                大赛报名
+              </router-link>
+            </li>
           </ul>
         </nav>
         <button class="menu-toggle" @click="menuOpen = !menuOpen">
@@ -61,6 +70,7 @@ const menuOpen = ref(false)
 
 const activeMenu = computed(() => {
   if (route.path === '/training') return 'training'
+  if (route.path === '/registration') return 'registration'
   return 'home'
 })
 </script>

@@ -2,8 +2,8 @@
   <div class="home">
     <section class="hero">
       <div class="container">
-        <h1>AI"虚拟下属"设计大赛</h1>
-        <p>设计你的AI虚拟下属，让工作更高效。零门槛参与，全程培训指导！</p>
+        <h1>"AI副驾驶"设计大赛</h1>
+        <p>让法务拥有自己的"AI副驾驶"！</p>
         <div class="hero-buttons">
           <router-link to="/training" class="btn btn-primary">开始学习</router-link>
           <a href="#stages" class="btn btn-secondary">了解详情</a>
@@ -30,21 +30,19 @@
       <div class="container">
         <div class="poster-content">
           <div class="poster-text">
-            <h2>大赛海报</h2>
+            <h2>"AI副驾驶"设计大赛</h2>
             <p><strong>参赛对象：</strong>海尔集团及各领域所有法务人员</p>
-            <p><strong>参赛方式：</strong>提交AI"虚拟下属"创意方案（角色定位、工作场景、能力设计、预期效果）</p>
+            <p><strong>参赛方式：</strong>提交"AI副驾驶"创意方案（角色定位、工作场景、能力设计、预期效果）</p>
             <p><strong>大赛亮点：</strong></p>
             <ul>
               <li>零门槛参与，全程培训指导</li>
-              <li>创意无限，设计你的专属AI助手</li>
+              <li>创意无限，设计你的专属AI副驾驶</li>
               <li>优秀创意将落地实施</li>
               <li>设最佳创意奖5个</li>
             </ul>
           </div>
           <div class="poster-image">
-            <div class="poster-placeholder">
-              大赛海报<br>（待上传）
-            </div>
+            <img src="/poster.jpeg" alt="大赛海报" class="poster-img" />
           </div>
         </div>
       </div>
@@ -77,9 +75,11 @@
 
 <script setup>
 const stages = [
-  { id: 1, name: 'AI"虚拟下属"设计大赛', description: '发挥创意，提出AI虚拟下属应用场景构想，提交创意方案（角色定位、工作场景、能力设计、预期效果）', time: '作品提交截止：4月8日' },
-  { id: 2, name: 'Agent实践大赛', description: '学习构建智能体，将创意方案落地实现，掌握Agent模板和工作执行步骤', time: '作品提交截止：6月10日' },
-  { id: 3, name: '应用实战大赛', description: '进阶实战，构建复杂智能体系统，实现多技能协同，打造高质量应用成果', time: '作品提交截止：8月30日' }
+  { id: 1, name: 'AI应用技巧培训', description: '系统学习AI应用技能，掌握主流AI工具使用方法，提升AI应用能力', time: '3月-4月（培训10+场）' },
+  { id: 2, name: '应用创意提交及评审', description: '发挥创意，提出AI副驾驶应用场景构想，提交创意方案', time: '5月初' },
+  { id: 3, name: '复杂智能体培训实战', description: '学习构建复杂智能体，掌握Agent模板和工作执行步骤', time: '6月-8月' },
+  { id: 4, name: '智能体作品提交评审', description: '提交复杂智能体设计作品，展示AI应用实战成果', time: '9月初' },
+  { id: 5, name: '高质量应用开发上线', description: '进阶实战，打造高质量应用成果，实现落地应用', time: '10月-12月' }
 ]
 
 const aiTools = [
@@ -322,17 +322,11 @@ const aiTools = [
   text-align: center;
 }
 
-.poster-placeholder {
+.poster-img {
   width: 100%;
   max-width: 400px;
-  aspect-ratio: 3/4;
-  background: rgba(255, 255, 255, 0.2);
   border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  border: 2px dashed rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   margin: 0 auto;
 }
 
