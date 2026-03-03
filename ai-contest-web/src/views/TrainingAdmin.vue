@@ -143,6 +143,14 @@
         <button class="btn btn-primary" @click="updateTraining">保存</button>
       </template>
     </Modal>
+
+    <Modal v-model="showConfirmModal" title="确认操作" width="400px">
+      <p class="confirm-message">{{ confirmMessage }}</p>
+      <template #footer>
+        <button class="btn btn-outline" @click="cancelConfirm">取消</button>
+        <button class="btn btn-danger" @click="executeConfirm">确认</button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -155,6 +163,10 @@ const STORAGE_KEY = 'ai-contest-trainings'
 const trainings = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showConfirmModal = ref(false)
+const confirmMessage = ref('')
+const pendingAction = ref(null)
+const pendingImportData = ref([])
 
 const newTraining = ref({
   name: '',
@@ -265,10 +277,13 @@ const updateTraining = () => {
 }
 
 const deleteTraining = (id) => {
-  if (confirm('确定要删除这个培训吗？')) {
+  const training = trainings.value.find(t => t.id === id)
+  confirmMessage.value = `确定要删除培训"${training.name}"吗？`
+  pendingAction.value = () => {
     trainings.value = trainings.value.filter(t => t.id !== id)
     saveTrainings()
   }
+  showConfirmModal.value = true
 }
 
 const clearAllTrainings = () => {
@@ -276,11 +291,27 @@ const clearAllTrainings = () => {
     alert('当前没有培训资料')
     return
   }
-  if (confirm(`确定要清空全部 ${trainings.value.length} 条培训资料吗？此操作不可恢复！`)) {
+  confirmMessage.value = `确定要清空全部 ${trainings.value.length} 条培训资料吗？此操作不可恢复！`
+  pendingAction.value = () => {
     trainings.value = []
     saveTrainings()
-    alert('已清空全部培训资料')
   }
+  showConfirmModal.value = true
+}
+
+const cancelConfirm = () => {
+  showConfirmModal.value = false
+  pendingAction.value = null
+  pendingImportData.value = []
+}
+
+const executeConfirm = () => {
+  if (pendingAction.value) {
+    pendingAction.value()
+  }
+  showConfirmModal.value = false
+  pendingAction.value = null
+  pendingImportData.value = []
 }
 
 const downloadTemplate = () => {
@@ -354,12 +385,13 @@ const handleImport = (e) => {
         return
       }
 
-      const confirmMsg = `即将导入 ${importedTrainings.length} 条培训资料，是否继续？\n（将追加到现有数据后）`
-      if (confirm(confirmMsg)) {
-        trainings.value = [...trainings.value, ...importedTrainings]
+      confirmMessage.value = `即将导入 ${importedTrainings.length} 条培训资料，是否继续？\n（将追加到现有数据后）`
+      pendingImportData.value = importedTrainings
+      pendingAction.value = () => {
+        trainings.value = [...trainings.value, ...pendingImportData.value]
         saveTrainings()
-        alert(`成功导入 ${importedTrainings.length} 条培训资料`)
       }
+      showConfirmModal.value = true
     } catch (error) {
       console.error('导入失败:', error)
       alert('导入失败：文件格式错误')
@@ -653,6 +685,15 @@ onMounted(() => {
   max-height: 150px;
   object-fit: cover;
   border-radius: 8px;
+}
+
+.confirm-message {
+  font-size: 16px;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-line;
+  margin: 0;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
