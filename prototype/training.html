@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>培训资料 - AI创意大赛</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .logo span {
+            color: #764ba2;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #667eea;
+        }
+        
+        nav a.active {
+            color: #667eea;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 20px;
+            color: white;
+            text-align: center;
+        }
+        
+        .page-header h1 {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+        
+        .page-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .toolbar {
+            background: white;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .toolbar-content {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #ee5a5a;
+        }
+        
+        .main-content {
+            padding: 40px 0;
+        }
+        
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .material-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .material-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .material-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .material-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .material-image .play-icon {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #667eea;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .material-card:hover .play-icon {
+            opacity: 1;
+        }
+        
+        .material-info {
+            padding: 20px;
+        }
+        
+        .material-info h4 {
+            font-size: 16px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 20px;
+            color: #333;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .file-upload-icon {
+            font-size: 40px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .file-upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .file-preview {
+            width: 100%;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .file-preview.active {
+            display: block;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .manage-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .manage-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .manage-item:last-child {
+            border-bottom: none;
+        }
+        
+        .manage-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .manage-item-info h4 {
+            font-size: 14px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .manage-item-info p {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .manage-item-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .manage-item-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        footer {
+            background: #1a1a2e;
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-section h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-section a {
+            color: #aaa;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section a:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                gap: 20px;
+            }
+            
+            .toolbar-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .materials-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">AI<span>创意大赛</span></div>
+                <nav>
+                    <ul>
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="training.html" class="active">培训资料</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <section class="page-header">
+        <div class="container">
+            <h1>培训资料</h1>
+            <p>系统学习AI应用知识，从入门到精通，助你在大赛中脱颖而出</p>
+        </div>
+    </section>
+    
+    <section class="toolbar">
+        <div class="container">
+            <div class="toolbar-content">
+                <button class="btn btn-primary" onclick="openModal('add')">
+                    <span>+</span> 添加培训
+                </button>
+                <button class="btn btn-outline" onclick="openModal('manage')">
+                    <span>⚙</span> 配置管理
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <section class="container">
+        <div class="main-content">
+            <div class="materials-grid" id="materialsGrid">
+                <div class="material-card" onclick="openVideo('https://www.bilibili.com/video/example1')">
+                    <div class="material-image">
+                        <img src="" alt="培训封面" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:white;\'>▶</div>'">
+                        <div class="play-icon">▶</div>
+                    </div>
+                    <div class="material-info">
+                        <h4>AI应用干货培训 - 第一讲：认识AI</h4>
+                    </div>
+                </div>
+                
+                <div class="material-card" onclick="openVideo('https://www.bilibili.com/video/example2')">
+                    <div class="material-image">
+                        <img src="" alt="培训封面" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:white;\'>▶</div>'">
+                        <div class="play-icon">▶</div>
+                    </div>
+                    <div class="material-info">
+                        <h4>AI工具使用指南 - ChatGPT实战手册</h4>
+                    </div>
+                </div>
+                
+                <div class="material-card" onclick="openVideo('https://www.bilibili.com/video/example3')">
+                    <div class="material-image">
+                        <img src="" alt="培训封面" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:white;\'>▶</div>'">
+                        <div class="play-icon">▶</div>
+                    </div>
+                    <div class="material-info">
+                        <h4>创意大赛参赛指南视频教程</h4>
+                    </div>
+                </div>
+                
+                <div class="material-card" onclick="openVideo('https://www.bilibili.com/video/example4')">
+                    <div class="material-image">
+                        <img src="" alt="培训封面" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:white;\'>▶</div>'">
+                        <div class="play-icon">▶</div>
+                    </div>
+                    <div class="material-info">
+                        <h4>Agent构建模板与案例集</h4>
+                    </div>
+                </div>
+                
+                <div class="material-card" onclick="openVideo('https://www.bilibili.com/video/example5')">
+                    <div class="material-image">
+                        <img src="" alt="培训封面" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:white;\'>▶</div>'">
+                        <div class="play-icon">▶</div>
+                    </div>
+                    <div class="material-info">
+                        <h4>AI应用干货培训 - 第二讲：提示词工程</h4>
+                    </div>
+                </div>
+                
+                <div class="material-card" onclick="openVideo('https://www.bilibili.com/video/example6')">
+                    <div class="material-image">
+                        <img src="" alt="培训封面" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:white;\'>▶</div>'">
+                        <div class="play-icon">▶</div>
+                    </div>
+                    <div class="material-info">
+                        <h4>知识库构建最佳实践</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>添加培训</h3>
+                <button class="modal-close" onclick="closeModal('add')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>培训名称</label>
+                    <input type="text" id="trainingName" placeholder="请输入培训名称">
+                </div>
+                <div class="form-group">
+                    <label>视频地址</label>
+                    <input type="text" id="trainingUrl" placeholder="请输入视频链接地址">
+                </div>
+                <div class="form-group">
+                    <label>封面图片</label>
+                    <div class="file-upload" onclick="document.getElementById('imageInput').click()">
+                        <input type="file" id="imageInput" accept="image/*">
+                        <img id="imagePreview" class="file-preview">
+                        <div id="uploadPlaceholder">
+                            <div class="file-upload-icon">🖼️</div>
+                            <div class="file-upload-text">点击上传封面图片</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('add')">取消</button>
+                <button class="btn btn-primary" onclick="saveTraining()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="manageModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>配置管理</h3>
+                <button class="modal-close" onclick="closeModal('manage')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="manage-list" id="manageList">
+                    <div class="manage-item">
+                        <div class="manage-item-info">
+                            <h4>AI应用干货培训 - 第一讲：认识AI</h4>
+                            <p>https://www.bilibili.com/video/example1</p>
+                        </div>
+                        <div class="manage-item-actions">
+                            <button class="btn btn-outline" onclick="editTraining(0)">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteTraining(0)">删除</button>
+                        </div>
+                    </div>
+                    <div class="manage-item">
+                        <div class="manage-item-info">
+                            <h4>AI工具使用指南 - ChatGPT实战手册</h4>
+                            <p>https://www.bilibili.com/video/example2</p>
+                        </div>
+                        <div class="manage-item-actions">
+                            <button class="btn btn-outline" onclick="editTraining(1)">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteTraining(1)">删除</button>
+                        </div>
+                    </div>
+                    <div class="manage-item">
+                        <div class="manage-item-info">
+                            <h4>创意大赛参赛指南视频教程</h4>
+                            <p>https://www.bilibili.com/video/example3</p>
+                        </div>
+                        <div class="manage-item-actions">
+                            <button class="btn btn-outline" onclick="editTraining(2)">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteTraining(2)">删除</button>
+                        </div>
+                    </div>
+                    <div class="manage-item">
+                        <div class="manage-item-info">
+                            <h4>Agent构建模板与案例集</h4>
+                            <p>https://www.bilibili.com/video/example4</p>
+                        </div>
+                        <div class="manage-item-actions">
+                            <button class="btn btn-outline" onclick="editTraining(3)">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteTraining(3)">删除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('manage')">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>编辑培训</h3>
+                <button class="modal-close" onclick="closeModal('edit')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>培训名称</label>
+                    <input type="text" id="editName" placeholder="请输入培训名称">
+                </div>
+                <div class="form-group">
+                    <label>视频地址</label>
+                    <input type="text" id="editUrl" placeholder="请输入视频链接地址">
+                </div>
+                <div class="form-group">
+                    <label>封面图片</label>
+                    <div class="file-upload" onclick="document.getElementById('editImageInput').click()">
+                        <input type="file" id="editImageInput" accept="image/*">
+                        <img id="editImagePreview" class="file-preview">
+                        <div id="editUploadPlaceholder">
+                            <div class="file-upload-icon">🖼️</div>
+                            <div class="file-upload-text">点击上传封面图片</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('edit')">取消</button>
+                <button class="btn btn-primary" onclick="updateTraining()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>关于大赛</h4>
+                    <ul>
+                        <li><a href="#">大赛介绍</a></li>
+                        <li><a href="#">比赛规则</a></li>
+                        <li><a href="#">奖励机制</a></li>
+                        <li><a href="#">常见问题</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>学习资源</h4>
+                    <ul>
+                        <li><a href="training.html">培训资料</a></li>
+                        <li><a href="#">视频教程</a></li>
+                        <li><a href="#">案例分享</a></li>
+                        <li><a href="#">文档中心</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系我们</h4>
+                    <ul>
+                        <li>法务部数字化与智能化项目组</li>
+                        <li>邮箱：ai-contest@example.com</li>
+                        <li>内线：8888</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AI创意大赛 - 法务部数字化与智能化项目组 版权所有</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        function openModal(type) {
+            if (type === 'add') {
+                document.getElementById('addModal').classList.add('active');
+            } else if (type === 'manage') {
+                document.getElementById('manageModal').classList.add('active');
+            } else if (type === 'edit') {
+                document.getElementById('editModal').classList.add('active');
+            }
+        }
+        
+        function closeModal(type) {
+            if (type === 'add') {
+                document.getElementById('addModal').classList.remove('active');
+                clearAddForm();
+            } else if (type === 'manage') {
+                document.getElementById('manageModal').classList.remove('active');
+            } else if (type === 'edit') {
+                document.getElementById('editModal').classList.remove('active');
+            }
+        }
+        
+        function clearAddForm() {
+            document.getElementById('trainingName').value = '';
+            document.getElementById('trainingUrl').value = '';
+            document.getElementById('imagePreview').classList.remove('active');
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+        }
+        
+        function openVideo(url) {
+            window.open(url, '_blank');
+        }
+        
+        function saveTraining() {
+            const name = document.getElementById('trainingName').value;
+            const url = document.getElementById('trainingUrl').value;
+            
+            if (!name || !url) {
+                alert('请填写培训名称和视频地址');
+                return;
+            }
+            
+            alert('保存成功！');
+            closeModal('add');
+        }
+        
+        function editTraining(index) {
+            closeModal('manage');
+            openModal('edit');
+        }
+        
+        function updateTraining() {
+            const name = document.getElementById('editName').value;
+            const url = document.getElementById('editUrl').value;
+            
+            if (!name || !url) {
+                alert('请填写培训名称和视频地址');
+                return;
+            }
+            
+            alert('更新成功！');
+            closeModal('edit');
+        }
+        
+        function deleteTraining(index) {
+            if (confirm('确定要删除这个培训吗？')) {
+                alert('删除成功！');
+            }
+        }
+        
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.classList.add('active');
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.getElementById('editImageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('editImagePreview');
+                    preview.src = e.target.result;
+                    preview.classList.add('active');
+                    document.getElementById('editUploadPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
