@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="wheelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="aiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <circle cx="100" cy="90" r="60" fill="none" stroke="url(#wheelGrad)" stroke-width="8"/>
+  <circle cx="100" cy="90" r="45" fill="none" stroke="url(#wheelGrad)" stroke-width="4" opacity="0.5"/>
+  
+  <circle cx="100" cy="90" r="15" fill="url(#aiGrad)"/>
+  
+  <line x1="100" y1="30" x2="100" y2="75" stroke="url(#wheelGrad)" stroke-width="6" stroke-linecap="round"/>
+  <line x1="100" y1="105" x2="100" y2="150" stroke="url(#wheelGrad)" stroke-width="6" stroke-linecap="round"/>
+  <line x1="40" y1="90" x2="85" y2="90" stroke="url(#wheelGrad)" stroke-width="6" stroke-linecap="round"/>
+  <line x1="115" y1="90" x2="160" y2="90" stroke="url(#wheelGrad)" stroke-width="6" stroke-linecap="round"/>
+  
+  <circle cx="100" cy="30" r="6" fill="#10b981"/>
+  <circle cx="100" cy="150" r="6" fill="#10b981"/>
+  <circle cx="40" cy="90" r="6" fill="#10b981"/>
+  <circle cx="160" cy="90" r="6" fill="#10b981"/>
+  
+  <path d="M90 90 L95 85 L105 95 L95 95 Z" fill="#fff"/>
+  
+  <path d="M70 165 L100 180 L130 165" fill="none" stroke="url(#aiGrad)" stroke-width="3" stroke-linecap="round"/>
+  
+  <text x="100" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669" font-weight="bold">AI COPILOT</text>
+</svg>

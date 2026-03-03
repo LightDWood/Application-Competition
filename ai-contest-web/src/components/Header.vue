@@ -1,24 +1,37 @@
 <template>
-  <header class="header">
+  <header class="header" v-show="!isHome">
     <div class="container">
       <div class="header-content">
         <router-link to="/" class="logo">
           <div class="logo-icon">
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <linearGradient id="aiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style="stop-color:#667eea"/>
-                  <stop offset="100%" style="stop-color:#764ba2"/>
+                <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#6366f1"/>
+                  <stop offset="100%" style="stop-color:#8b5cf6"/>
+                </linearGradient>
+                <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#1e1b4b"/>
+                  <stop offset="100%" style="stop-color:#312e81"/>
                 </linearGradient>
               </defs>
-              <circle cx="20" cy="20" r="18" stroke="url(#aiGradient)" stroke-width="2" fill="none" class="pulse-circle"/>
-              <circle cx="20" cy="20" r="12" fill="url(#aiGradient)" opacity="0.1"/>
-              <path d="M20 8 L20 12 M20 28 L20 32 M8 20 L12 20 M28 20 L32 20" stroke="url(#aiGradient)" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="20" cy="20" r="6" fill="url(#aiGradient)" class="core-circle"/>
-              <circle cx="20" cy="20" r="3" fill="white" opacity="0.8"/>
+              <rect x="50" y="40" width="100" height="120" rx="15" fill="url(#robotGrad)"/>
+              <rect x="60" y="55" width="80" height="50" rx="8" fill="url(#screenGrad)"/>
+              <circle cx="80" cy="80" r="8" fill="#22d3ee" class="eye-left">
+                <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="120" cy="80" r="8" fill="#22d3ee" class="eye-right">
+                <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+              </circle>
+              <rect x="70" y="115" width="60" height="8" rx="4" fill="#c4b5fd"/>
+              <rect x="80" y="130" width="40" height="8" rx="4" fill="#c4b5fd"/>
+              <rect x="90" y="145" width="20" height="8" rx="4" fill="#c4b5fd"/>
+              <rect x="30" y="70" width="15" height="30" rx="5" fill="url(#robotGrad)"/>
+              <rect x="155" y="70" width="15" height="30" rx="5" fill="url(#robotGrad)"/>
+              <circle cx="100" cy="30" r="8" fill="#f43f5e"/>
             </svg>
           </div>
-          <span class="logo-text">AI<span class="highlight">"虚拟下属"设计大赛</span></span>
+          <span class="logo-text">AI<span class="highlight">"副驾驶"设计大赛</span></span>
         </router-link>
         <nav class="nav" :class="{ 'nav-open': menuOpen }">
           <ul>
@@ -67,6 +80,8 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const menuOpen = ref(false)
+
+const isHome = computed(() => route.path === '/')
 
 const activeMenu = computed(() => {
   if (route.path === '/training') return 'training'
@@ -118,31 +133,16 @@ const activeMenu = computed(() => {
   height: 100%;
 }
 
-.pulse-circle {
-  animation: pulse 2s ease-in-out infinite;
+.eye-left, .eye-right {
+  animation: blink 2s ease-in-out infinite;
 }
 
-.core-circle {
-  animation: glow 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes pulse {
+@keyframes blink {
   0%, 100% {
     opacity: 1;
-    transform: scale(1);
   }
   50% {
-    opacity: 0.6;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes glow {
-  0% {
-    filter: drop-shadow(0 0 2px rgba(102, 126, 234, 0.5));
-  }
-  100% {
-    filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.8));
+    opacity: 0.5;
   }
 }
 
