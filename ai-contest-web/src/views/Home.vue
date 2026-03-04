@@ -162,10 +162,10 @@ const getParticleStyle = (n) => {
 
 const stages = [
   { id: 1, name: 'AI应用技巧培训', description: '系统学习AI应用技能，掌握主流AI工具使用方法', time: '3月-4月' },
-  { id: 2, name: '应用创意提交及评审', description: '发挥创意，提出AI副驾驶应用场景构想', time: '5月初' },
-  { id: 3, name: '复杂智能体培训实战', description: '学习构建复杂智能体，掌握Agent模板', time: '6月-8月' },
-  { id: 4, name: '智能体作品提交评审', description: '提交复杂智能体设计作品，展示实战成果', time: '9月初' },
-  { id: 5, name: '高质量应用开发上线', description: '进阶实战，打造高质量应用成果', time: '10月-12月' }
+  { id: 2, name: '创意提交与评审', description: '发挥创意，提出AI副驾驶应用场景构想', time: '5月初' },
+  { id: 3, name: '智能体培训实战', description: '学习构建复杂智能体，掌握Agent模板', time: '6月-8月' },
+  { id: 4, name: '作品提交与评审', description: '提交复杂智能体设计作品，展示实战成果', time: '9月初' },
+  { id: 5, name: '应用开发与上线', description: '进阶实战，打造高质量应用成果', time: '10月-12月' }
 ]
 
 const infoCards = [
@@ -177,7 +177,7 @@ const infoCards = [
   {
     icon: '🏆',
     title: '奖励机制',
-    content: '最终露出作品，优先录入三金奖、月度奖等集团奖项，并优先获得发展。'
+    content: '最终漏出作品，优先录入三金奖、月度奖等集团奖项，并优先获得发展。'
   },
   {
     icon: '✨',
