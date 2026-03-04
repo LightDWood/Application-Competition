@@ -12,7 +12,7 @@
         <div class="hero-content">
           <div class="hero-badge">海尔集团法务数字化创新</div>
           <h1 class="hero-title">
-            <span class="title-line">"AI副驾驶"</span>
+            <span class="title-line">法务"AI副驾驶"</span>
             <span class="title-highlight">设计大赛</span>
           </h1>
           <p class="hero-subtitle">让法务拥有自己的"AI副驾驶"！</p>

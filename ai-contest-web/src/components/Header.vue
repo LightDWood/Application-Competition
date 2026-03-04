@@ -31,7 +31,7 @@
               <circle cx="100" cy="30" r="8" fill="#f43f5e"/>
             </svg>
           </div>
-          <span class="logo-text">AI<span class="highlight">"副驾驶"设计大赛</span></span>
+          <span class="logo-text">法务<span class="highlight">"AI副驾驶"设计大赛</span></span>
         </router-link>
         <nav class="nav" :class="{ 'nav-open': menuOpen }">
           <ul>

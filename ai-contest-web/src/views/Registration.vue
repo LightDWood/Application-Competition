@@ -3,7 +3,7 @@
     <section class="page-header">
       <div class="container">
         <h1>大赛报名</h1>
-        <p>填写作品信息，参与AI"虚拟下属"设计大赛</p>
+        <p>填写作品信息，参与法务"AI副驾驶"设计大赛</p>
       </div>
     </section>
 

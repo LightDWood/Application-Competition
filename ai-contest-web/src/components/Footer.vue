@@ -17,7 +17,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 "AI副驾驶"设计大赛 - 海尔集团法务部 版权所有</p>
+        <p>&copy; 2026 法务"AI副驾驶"设计大赛 - 海尔集团法务部 版权所有</p>
       </div>
     </div>
   </footer>

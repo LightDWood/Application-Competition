@@ -136,7 +136,7 @@
 
     <section class="container main-content qrcode-content" v-show="activeTab === 'qrcode'">
       <div class="qrcode-card">
-        <h3>AI创意大赛网站二维码</h3>
+        <h3>法务"AI副驾驶"设计大赛网站二维码</h3>
         <p class="qrcode-url">http://123.57.165.99/ai-contest/</p>
         <div class="qrcode-wrapper">
           <img 
@@ -876,7 +876,7 @@ const downloadQRCode = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.drawImage(img, 0, 0)
     const link = document.createElement('a')
-    link.download = 'AI创意大赛网站二维码.png'
+    link.download = '法务AI副驾驶设计大赛网站二维码.png'
     link.href = canvas.toDataURL('image/png')
     link.click()
   }
