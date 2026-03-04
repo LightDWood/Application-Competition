@@ -21,6 +21,10 @@ const routes = [
     component: TrainingAdmin
   },
   {
+    path: '/admin',
+    redirect: '/training-admin'
+  },
+  {
     path: '/registration',
     name: 'Registration',
     component: Registration

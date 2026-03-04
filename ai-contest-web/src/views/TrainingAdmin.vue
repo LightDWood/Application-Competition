@@ -51,6 +51,9 @@
                 style="display: none"
               >
             </label>
+            <button class="btn btn-outline" @click="restoreDefaultData">
+              恢复默认数据
+            </button>
             <button class="btn btn-danger" @click="clearAllTrainings">
               清空全部
             </button>
@@ -289,6 +292,109 @@ const loadTrainings = () => {
   const data = localStorage.getItem(TRAINING_STORAGE_KEY)
   if (data) {
     trainings.value = JSON.parse(data)
+  } else {
+    // 初始化默认培训数据
+    trainings.value = [
+      {
+        id: 1,
+        name: 'AI说-AI赋能法律人工作：原理、工具',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/763568303',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        name: '圆桌论坛：生成式AI对企业合规的挑战',
+        videoUrl: 'https://t.568live.cn/FK1YtW',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 3,
+        name: '主题演讲：全球视角下的AI合规与监管趋势',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/686916117',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 4,
+        name: '专家视角：通用型AI与法律AI的差异与融合',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/560575636',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 5,
+        name: '圆桌讨论：法务部门如何使用AI赋能工作场景',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/626184781',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 6,
+        name: '圆桌讨论：生成式AI对企业合规的挑战与风险防控',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/580655488',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 7,
+        name: '生成式AI法律治理：全球热点、法律挑战与合规实践',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/627813242',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 8,
+        name: 'AI+应用出海合规风险',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/254857703',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 9,
+        name: '人工智能的法律边界与出海路径之一',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/617378607',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 10,
+        name: '未来法律·AI说-跨境出海中的AI法律应用：从效率工具到准确决策的协同路径',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/998354907',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 11,
+        name: '未来法律·AI说-不是禁用，而是善用：企业法务如何高效、负责任地使用AI？',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/959768469',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 12,
+        name: '未来法律·AI说:AIGC应用中的法律挑战、立法趋势与应对之道',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/178631583',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 13,
+        name: '未来法律·AI说-法律人共创畅想法律AI的未来',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/433075047',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 14,
+        name: '未来法律·AI说-律所与企业双重视角下的人机协同',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/293362594',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      }
+    ]
+    saveTrainings()
   }
 }
 
@@ -416,6 +522,115 @@ const clearAllTrainings = () => {
   confirmMessage.value = `确定要清空全部 ${trainings.value.length} 条培训资料吗？此操作不可恢复！`
   pendingAction.value = () => {
     trainings.value = []
+    saveTrainings()
+  }
+  showConfirmModal.value = true
+}
+
+const restoreDefaultData = () => {
+  confirmMessage.value = '确定要恢复默认培训数据吗？当前数据将被覆盖！'
+  pendingAction.value = () => {
+    // 恢复默认培训数据
+    trainings.value = [
+      {
+        id: 1,
+        name: 'AI说-AI赋能法律人工作：原理、工具',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/763568303',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        name: '圆桌论坛：生成式AI对企业合规的挑战',
+        videoUrl: 'https://t.568live.cn/FK1YtW',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 3,
+        name: '主题演讲：全球视角下的AI合规与监管趋势',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/686916117',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 4,
+        name: '专家视角：通用型AI与法律AI的差异与融合',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/560575636',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 5,
+        name: '圆桌讨论：法务部门如何使用AI赋能工作场景',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/626184781',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 6,
+        name: '圆桌讨论：生成式AI对企业合规的挑战与风险防控',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/580655488',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 7,
+        name: '生成式AI法律治理：全球热点、法律挑战与合规实践',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/627813242',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 8,
+        name: 'AI+应用出海合规风险',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/254857703',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 9,
+        name: '人工智能的法律边界与出海路径之一',
+        videoUrl: 'https://live.vhall.com/v3/lives/watch/617378607',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 10,
+        name: '未来法律·AI说-跨境出海中的AI法律应用：从效率工具到准确决策的协同路径',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/998354907',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 11,
+        name: '未来法律·AI说-不是禁用，而是善用：企业法务如何高效、负责任地使用AI？',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/959768469',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 12,
+        name: '未来法律·AI说:AIGC应用中的法律挑战、立法趋势与应对之道',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/178631583',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 13,
+        name: '未来法律·AI说-法律人共创畅想法律AI的未来',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/433075047',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 14,
+        name: '未来法律·AI说-律所与企业双重视角下的人机协同',
+        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/293362594',
+        coverImage: '',
+        createdAt: new Date().toISOString()
+      }
+    ]
     saveTrainings()
   }
   showConfirmModal.value = true
