@@ -24,6 +24,13 @@
           >
             报名信息管理
           </button>
+          <button 
+            class="tab-btn" 
+            :class="{ active: activeTab === 'qrcode' }"
+            @click="activeTab = 'qrcode'"
+          >
+            网站二维码
+          </button>
         </div>
       </div>
     </section>
@@ -124,6 +131,25 @@
       <div v-if="registrations.length === 0" class="empty-state">
         <p>暂无报名记录</p>
         <p class="hint">等待参赛者提交报名信息</p>
+      </div>
+    </section>
+
+    <section class="container main-content qrcode-content" v-show="activeTab === 'qrcode'">
+      <div class="qrcode-card">
+        <h3>AI创意大赛网站二维码</h3>
+        <p class="qrcode-url">http://123.57.165.99/ai-contest/</p>
+        <div class="qrcode-wrapper">
+          <img 
+            src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://123.57.165.99/ai-contest/" 
+            alt="网站二维码" 
+            class="qrcode-img"
+          />
+        </div>
+        <p class="qrcode-tip">扫码即可访问大赛网站</p>
+        <div class="qrcode-actions">
+          <button class="btn btn-primary" @click="copyQRCodeLink">复制链接</button>
+          <button class="btn btn-outline" @click="downloadQRCode">下载二维码</button>
+        </div>
       </div>
     </section>
 
@@ -823,6 +849,43 @@ const parseCSVLine = (line) => {
   return result.map(item => item.trim().replace(/^"|"$/g, ''))
 }
 
+const copyQRCodeLink = () => {
+  const url = 'http://123.57.165.99/ai-contest/'
+  navigator.clipboard.writeText(url).then(() => {
+    alert('链接已复制到剪贴板！')
+  }).catch(() => {
+    const input = document.createElement('input')
+    input.value = url
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+    alert('链接已复制到剪贴板！')
+  })
+}
+
+const downloadQRCode = () => {
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
+  img.onload = () => {
+    const canvas = document.createElement('canvas')
+    canvas.width = img.width
+    canvas.height = img.height
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(img, 0, 0)
+    const link = document.createElement('a')
+    link.download = 'AI创意大赛网站二维码.png'
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }
+  img.onerror = () => {
+    window.open('https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=http://123.57.165.99/ai-contest/', '_blank')
+  }
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=http://123.57.165.99/ai-contest/'
+}
+
 onMounted(() => {
   loadTrainings()
   loadRegistrations()
@@ -1188,6 +1251,65 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+.qrcode-content {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.qrcode-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 400px;
+  width: 100%;
+}
+
+.qrcode-card h3 {
+  font-size: 22px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.qrcode-url {
+  font-size: 14px;
+  color: #667eea;
+  background: #f0f3ff;
+  padding: 10px 20px;
+  border-radius: 25px;
+  margin-bottom: 30px;
+  word-break: break-all;
+}
+
+.qrcode-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.qrcode-img {
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  background: white;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.qrcode-tip {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 25px;
+}
+
+.qrcode-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
 }
 
 @media (max-width: 768px) {
