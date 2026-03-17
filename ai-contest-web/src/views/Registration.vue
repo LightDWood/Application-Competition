@@ -71,8 +71,7 @@
 
 <script setup>
 import { ref } from 'vue'
-
-const STORAGE_KEY = 'ai-contest-registrations'
+import { registrationApi } from '../api/registration.js'
 
 const form = ref({
   workName: '',
@@ -103,30 +102,31 @@ const validateForm = () => {
   return true
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!validateForm()) return
 
   isSubmitting.value = true
 
-  setTimeout(() => {
-    const submission = {
-      id: Date.now(),
+  try {
+    const res = await registrationApi.submit({
       workName: form.value.workName.trim(),
       workDescription: form.value.workDescription.trim(),
       userName: form.value.userName.trim(),
-      userEmployeeId: form.value.userEmployeeId.trim(),
-      createdAt: new Date().toISOString()
+      userEmployeeId: form.value.userEmployeeId.trim()
+    })
+
+    if (res.code === 0) {
+      alert('报名提交成功！')
+      resetForm()
+    } else {
+      alert(res.message || '报名提交失败')
     }
-
-    const data = localStorage.getItem(STORAGE_KEY)
-    const submissions = data ? JSON.parse(data) : []
-    submissions.push(submission)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions))
-
-    alert('报名提交成功！')
-    resetForm()
+  } catch (error) {
+    console.error('提交报名失败:', error)
+    alert(error.message || '报名提交失败，请稍后重试')
+  } finally {
     isSubmitting.value = false
-  }, 500)
+  }
 }
 
 const resetForm = () => {

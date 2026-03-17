@@ -2,8 +2,16 @@
   <div class="training-admin-page">
     <section class="page-header">
       <div class="container">
-        <h1>后台管理</h1>
-        <p>管理培训资料和报名信息</p>
+        <div class="header-content">
+          <div>
+            <h1>后台管理</h1>
+            <p>管理培训资料和报名信息</p>
+          </div>
+          <div class="header-actions">
+            <span class="admin-name">欢迎，{{ adminInfo?.username || '管理员' }}</span>
+            <button class="btn btn-outline btn-sm" @click="handleLogout">退出登录</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -45,25 +53,6 @@
             <button class="btn btn-primary" @click="openAddModal">
               + 添加培训
             </button>
-            <button class="btn btn-outline" @click="downloadTemplate">
-              下载导入模板
-            </button>
-            <label class="btn btn-outline import-label">
-              导入培训资料
-              <input 
-                type="file" 
-                ref="importFileInput"
-                accept=".csv" 
-                @change="handleImport"
-                style="display: none"
-              >
-            </label>
-            <button class="btn btn-outline" @click="restoreDefaultData">
-              恢复默认数据
-            </button>
-            <button class="btn btn-danger" @click="clearAllTrainings">
-              清空全部
-            </button>
           </div>
         </div>
       </div>
@@ -79,16 +68,17 @@
             <button class="btn btn-primary" @click="exportToExcel" :disabled="registrations.length === 0">
               导出Excel
             </button>
-            <button class="btn btn-danger" @click="clearAllRegistrations">
-              清空全部
-            </button>
           </div>
         </div>
       </div>
     </section>
 
     <section class="container main-content" v-show="activeTab === 'training'">
-      <div class="manage-list">
+      <div v-if="loading" class="loading-state">
+        <p>加载中...</p>
+      </div>
+      
+      <div v-else class="manage-list">
         <div class="manage-item" v-for="training in trainings" :key="training.id">
           <div class="manage-item-index">{{ trainings.indexOf(training) + 1 }}</div>
           <div class="manage-item-info">
@@ -103,14 +93,18 @@
         </div>
       </div>
 
-      <div v-if="trainings.length === 0" class="empty-state">
+      <div v-if="!loading && trainings.length === 0" class="empty-state">
         <p>暂无培训资料</p>
-        <p class="hint">请点击"添加培训"或"导入培训资料"按钮添加数据</p>
+        <p class="hint">请点击"添加培训"按钮添加数据</p>
       </div>
     </section>
 
     <section class="container main-content" v-show="activeTab === 'registration'">
-      <div class="manage-list">
+      <div v-if="loading" class="loading-state">
+        <p>加载中...</p>
+      </div>
+      
+      <div v-else class="manage-list">
         <div class="manage-item registration-item" v-for="reg in registrations" :key="reg.id">
           <div class="manage-item-index">{{ registrations.indexOf(reg) + 1 }}</div>
           <div class="manage-item-info">
@@ -128,7 +122,7 @@
         </div>
       </div>
 
-      <div v-if="registrations.length === 0" class="empty-state">
+      <div v-if="!loading && registrations.length === 0" class="empty-state">
         <p>暂无报名记录</p>
         <p class="hint">等待参赛者提交报名信息</p>
       </div>
@@ -172,26 +166,9 @@
           class="form-input"
         >
       </div>
-      <div class="form-group">
-        <label>封面图片</label>
-        <div class="file-upload" @click="triggerFileInput">
-          <input 
-            type="file" 
-            ref="fileInput"
-            accept="image/*" 
-            @change="handleFileChange"
-            style="display: none"
-          >
-          <img v-if="newTraining.coverImage" :src="newTraining.coverImage" class="file-preview">
-          <div v-else class="upload-placeholder">
-            <div class="upload-icon">🖼️</div>
-            <div class="upload-text">点击上传封面图片</div>
-          </div>
-        </div>
-      </div>
       <template #footer>
         <button class="btn btn-outline" @click="showAddModal = false">取消</button>
-        <button class="btn btn-primary" @click="addTraining">保存</button>
+        <button class="btn btn-primary" @click="addTraining" :disabled="submitting">保存</button>
       </template>
     </Modal>
 
@@ -214,26 +191,9 @@
           class="form-input"
         >
       </div>
-      <div class="form-group">
-        <label>封面图片</label>
-        <div class="file-upload" @click="triggerEditFileInput">
-          <input 
-            type="file" 
-            ref="editFileInput"
-            accept="image/*" 
-            @change="handleEditFileChange"
-            style="display: none"
-          >
-          <img v-if="editingTraining.coverImage" :src="editingTraining.coverImage" class="file-preview">
-          <div v-else class="upload-placeholder">
-            <div class="upload-icon">🖼️</div>
-            <div class="upload-text">点击上传封面图片</div>
-          </div>
-        </div>
-      </div>
       <template #footer>
         <button class="btn btn-outline" @click="showEditModal = false">取消</button>
-        <button class="btn btn-primary" @click="updateTraining">保存</button>
+        <button class="btn btn-primary" @click="updateTraining" :disabled="submitting">保存</button>
       </template>
     </Modal>
 
@@ -270,31 +230,34 @@
     <Modal v-model="showConfirmModal" title="确认操作" width="400px">
       <p class="confirm-message">{{ confirmMessage }}</p>
       <template #footer>
-        <button class="btn btn-outline" @click="cancelConfirm">取消</button>
-        <button class="btn btn-danger" @click="executeConfirm">确认</button>
+        <button class="btn btn-outline" @click="showConfirmModal = false">取消</button>
+        <button class="btn btn-danger" @click="executeConfirm" :disabled="submitting">确认</button>
       </template>
     </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import Modal from '../components/Modal.vue'
 import * as XLSX from 'xlsx'
+import { trainingApi } from '../api/training.js'
+import { registrationApi } from '../api/registration.js'
 
-const TRAINING_STORAGE_KEY = 'ai-contest-trainings'
-const REGISTRATION_STORAGE_KEY = 'ai-contest-registrations'
+const router = useRouter()
 
 const activeTab = ref('training')
 const trainings = ref([])
 const registrations = ref([])
+const loading = ref(false)
+const submitting = ref(false)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showViewModal = ref(false)
 const showConfirmModal = ref(false)
 const confirmMessage = ref('')
 const pendingAction = ref(null)
-const pendingImportData = ref([])
 const viewingRegistration = ref(null)
 
 const newTraining = ref({
@@ -310,133 +273,37 @@ const editingTraining = ref({
   coverImage: ''
 })
 
-const fileInput = ref(null)
-const editFileInput = ref(null)
-const importFileInput = ref(null)
+const adminInfo = computed(() => {
+  const info = localStorage.getItem('admin_info')
+  return info ? JSON.parse(info) : null
+})
 
-const loadTrainings = () => {
-  const data = localStorage.getItem(TRAINING_STORAGE_KEY)
-  if (data) {
-    trainings.value = JSON.parse(data)
-  } else {
-    // 初始化默认培训数据
-    trainings.value = [
-      {
-        id: 1,
-        name: 'AI说-AI赋能法律人工作：原理、工具',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/763568303',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        name: '圆桌论坛：生成式AI对企业合规的挑战',
-        videoUrl: 'https://t.568live.cn/FK1YtW',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 3,
-        name: '主题演讲：全球视角下的AI合规与监管趋势',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/686916117',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 4,
-        name: '专家视角：通用型AI与法律AI的差异与融合',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/560575636',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 5,
-        name: '圆桌讨论：法务部门如何使用AI赋能工作场景',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/626184781',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 6,
-        name: '圆桌讨论：生成式AI对企业合规的挑战与风险防控',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/580655488',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 7,
-        name: '生成式AI法律治理：全球热点、法律挑战与合规实践',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/627813242',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 8,
-        name: 'AI+应用出海合规风险',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/254857703',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 9,
-        name: '人工智能的法律边界与出海路径之一',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/617378607',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 10,
-        name: '未来法律·AI说-跨境出海中的AI法律应用：从效率工具到准确决策的协同路径',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/998354907',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 11,
-        name: '未来法律·AI说-不是禁用，而是善用：企业法务如何高效、负责任地使用AI？',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/959768469',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 12,
-        name: '未来法律·AI说:AIGC应用中的法律挑战、立法趋势与应对之道',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/178631583',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 13,
-        name: '未来法律·AI说-法律人共创畅想法律AI的未来',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/433075047',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 14,
-        name: '未来法律·AI说-律所与企业双重视角下的人机协同',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/293362594',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      }
-    ]
-    saveTrainings()
+const loadTrainings = async () => {
+  try {
+    loading.value = true
+    const res = await trainingApi.getList()
+    if (res.code === 0 && res.data) {
+      trainings.value = res.data.list || []
+    }
+  } catch (error) {
+    console.error('加载培训资料失败:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-const saveTrainings = () => {
-  localStorage.setItem(TRAINING_STORAGE_KEY, JSON.stringify(trainings.value))
-}
-
-const loadRegistrations = () => {
-  const data = localStorage.getItem(REGISTRATION_STORAGE_KEY)
-  if (data) {
-    registrations.value = JSON.parse(data)
+const loadRegistrations = async () => {
+  try {
+    loading.value = true
+    const res = await registrationApi.getList()
+    if (res.code === 0 && res.data) {
+      registrations.value = res.data.list || []
+    }
+  } catch (error) {
+    console.error('加载报名记录失败:', error)
+  } finally {
+    loading.value = false
   }
-}
-
-const saveRegistrations = () => {
-  localStorage.setItem(REGISTRATION_STORAGE_KEY, JSON.stringify(registrations.value))
 }
 
 const formatDate = (dateStr) => {
@@ -464,200 +331,80 @@ const openEditModal = (training) => {
   showEditModal.value = true
 }
 
-const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-const triggerEditFileInput = () => {
-  editFileInput.value?.click()
-}
-
-const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      newTraining.value.coverImage = event.target.result
-    }
-    reader.readAsDataURL(file)
-  }
-}
-
-const handleEditFileChange = (e) => {
-  const file = e.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      editingTraining.value.coverImage = event.target.result
-    }
-    reader.readAsDataURL(file)
-  }
-}
-
-const addTraining = () => {
+const addTraining = async () => {
   if (!newTraining.value.name || !newTraining.value.videoUrl) {
     alert('请填写培训名称和视频地址')
     return
   }
 
-  const training = {
-    id: Date.now(),
-    ...newTraining.value,
-    createdAt: new Date().toISOString()
+  try {
+    submitting.value = true
+    const res = await trainingApi.create({
+      name: newTraining.value.name,
+      videoUrl: newTraining.value.videoUrl,
+      coverImage: newTraining.value.coverImage
+    })
+    
+    if (res.code === 0) {
+      showAddModal.value = false
+      await loadTrainings()
+    } else {
+      alert(res.message || '添加失败')
+    }
+  } catch (error) {
+    console.error('添加培训失败:', error)
+    alert(error.message || '添加失败')
+  } finally {
+    submitting.value = false
   }
-
-  trainings.value.push(training)
-  saveTrainings()
-  showAddModal.value = false
-  newTraining.value = { name: '', videoUrl: '', coverImage: '' }
 }
 
-const updateTraining = () => {
+const updateTraining = async () => {
   if (!editingTraining.value.name || !editingTraining.value.videoUrl) {
     alert('请填写培训名称和视频地址')
     return
   }
 
-  const index = trainings.value.findIndex(t => t.id === editingTraining.value.id)
-  if (index !== -1) {
-    trainings.value[index] = {
-      ...editingTraining.value,
-      updatedAt: new Date().toISOString()
+  try {
+    submitting.value = true
+    const res = await trainingApi.update(editingTraining.value.id, {
+      name: editingTraining.value.name,
+      videoUrl: editingTraining.value.videoUrl,
+      coverImage: editingTraining.value.coverImage
+    })
+    
+    if (res.code === 0) {
+      showEditModal.value = false
+      await loadTrainings()
+    } else {
+      alert(res.message || '更新失败')
     }
-    saveTrainings()
+  } catch (error) {
+    console.error('更新培训失败:', error)
+    alert(error.message || '更新失败')
+  } finally {
+    submitting.value = false
   }
-
-  showEditModal.value = false
 }
 
-const deleteTraining = (id) => {
+const deleteTraining = async (id) => {
   const training = trainings.value.find(t => t.id === id)
   confirmMessage.value = `确定要删除培训"${training.name}"吗？`
-  pendingAction.value = () => {
-    trainings.value = trainings.value.filter(t => t.id !== id)
-    saveTrainings()
-  }
-  showConfirmModal.value = true
-}
-
-const clearAllTrainings = () => {
-  if (trainings.value.length === 0) {
-    alert('当前没有培训资料')
-    return
-  }
-  confirmMessage.value = `确定要清空全部 ${trainings.value.length} 条培训资料吗？此操作不可恢复！`
-  pendingAction.value = () => {
-    trainings.value = []
-    saveTrainings()
-  }
-  showConfirmModal.value = true
-}
-
-const restoreDefaultData = () => {
-  confirmMessage.value = '确定要恢复默认培训数据吗？当前数据将被覆盖！'
-  pendingAction.value = () => {
-    // 恢复默认培训数据
-    trainings.value = [
-      {
-        id: 1,
-        name: 'AI说-AI赋能法律人工作：原理、工具',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/763568303',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        name: '圆桌论坛：生成式AI对企业合规的挑战',
-        videoUrl: 'https://t.568live.cn/FK1YtW',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 3,
-        name: '主题演讲：全球视角下的AI合规与监管趋势',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/686916117',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 4,
-        name: '专家视角：通用型AI与法律AI的差异与融合',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/560575636',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 5,
-        name: '圆桌讨论：法务部门如何使用AI赋能工作场景',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/626184781',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 6,
-        name: '圆桌讨论：生成式AI对企业合规的挑战与风险防控',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/580655488',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 7,
-        name: '生成式AI法律治理：全球热点、法律挑战与合规实践',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/627813242',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 8,
-        name: 'AI+应用出海合规风险',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/254857703',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 9,
-        name: '人工智能的法律边界与出海路径之一',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/617378607',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 10,
-        name: '未来法律·AI说-跨境出海中的AI法律应用：从效率工具到准确决策的协同路径',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/998354907',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 11,
-        name: '未来法律·AI说-不是禁用，而是善用：企业法务如何高效、负责任地使用AI？',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/959768469',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 12,
-        name: '未来法律·AI说:AIGC应用中的法律挑战、立法趋势与应对之道',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/178631583',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 13,
-        name: '未来法律·AI说-法律人共创畅想法律AI的未来',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/433075047',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 14,
-        name: '未来法律·AI说-律所与企业双重视角下的人机协同',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/293362594',
-        coverImage: '',
-        createdAt: new Date().toISOString()
+  pendingAction.value = async () => {
+    try {
+      submitting.value = true
+      const res = await trainingApi.delete(id)
+      if (res.code === 0) {
+        await loadTrainings()
+      } else {
+        alert(res.message || '删除失败')
       }
-    ]
-    saveTrainings()
+    } catch (error) {
+      console.error('删除培训失败:', error)
+      alert(error.message || '删除失败')
+    } finally {
+      submitting.value = false
+    }
   }
   showConfirmModal.value = true
 }
@@ -667,186 +414,69 @@ const viewRegistration = (reg) => {
   showViewModal.value = true
 }
 
-const deleteRegistration = (id) => {
+const deleteRegistration = async (id) => {
   const reg = registrations.value.find(r => r.id === id)
   confirmMessage.value = `确定要删除"${reg.workName}"的报名记录吗？`
-  pendingAction.value = () => {
-    registrations.value = registrations.value.filter(r => r.id !== id)
-    saveRegistrations()
+  pendingAction.value = async () => {
+    try {
+      submitting.value = true
+      const res = await registrationApi.delete(id)
+      if (res.code === 0) {
+        await loadRegistrations()
+      } else {
+        alert(res.message || '删除失败')
+      }
+    } catch (error) {
+      console.error('删除报名记录失败:', error)
+      alert(error.message || '删除失败')
+    } finally {
+      submitting.value = false
+    }
   }
   showConfirmModal.value = true
 }
 
-const clearAllRegistrations = () => {
-  if (registrations.value.length === 0) {
-    alert('当前没有报名记录')
-    return
+const executeConfirm = async () => {
+  if (pendingAction.value) {
+    await pendingAction.value()
   }
-  confirmMessage.value = `确定要清空全部 ${registrations.value.length} 条报名记录吗？此操作不可恢复！`
-  pendingAction.value = () => {
-    registrations.value = []
-    saveRegistrations()
-  }
-  showConfirmModal.value = true
+  showConfirmModal.value = false
+  pendingAction.value = null
 }
 
-const exportToExcel = () => {
+const exportToExcel = async () => {
   if (registrations.value.length === 0) {
     alert('没有可导出的数据')
     return
   }
 
-  const exportData = registrations.value.map((reg, index) => ({
-    '序号': index + 1,
-    '作品名称': reg.workName,
-    '作品概述': reg.workDescription,
-    '参赛人姓名': reg.userName,
-    '参赛人工号': reg.userEmployeeId,
-    '提交时间': formatDate(reg.createdAt)
-  }))
-
-  const worksheet = XLSX.utils.json_to_sheet(exportData)
-  
-  const colWidths = [
-    { wch: 6 },
-    { wch: 30 },
-    { wch: 60 },
-    { wch: 15 },
-    { wch: 15 },
-    { wch: 20 }
-  ]
-  worksheet['!cols'] = colWidths
-
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, '报名信息')
-
-  const fileName = `报名信息_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`
-  XLSX.writeFile(workbook, fileName)
-}
-
-const cancelConfirm = () => {
-  showConfirmModal.value = false
-  pendingAction.value = null
-  pendingImportData.value = []
-}
-
-const executeConfirm = () => {
-  if (pendingAction.value) {
-    pendingAction.value()
-  }
-  showConfirmModal.value = false
-  pendingAction.value = null
-  pendingImportData.value = []
-}
-
-const downloadTemplate = () => {
-  const templateContent = `培训名称,培训地址
-AI说-AI赋能法律人工作：原理、工具,https://live-og3lg6.vhall.cn/v3/lives/watch/763568303
-圆桌论坛：生成式AI对企业合规的挑战,https://t.568live.cn/FK1YtW
-主题演讲：全球视角下的AI合规与监管趋势,https://live.vhall.com/v3/lives/watch/686916117
-专家视角：通用型AI与法律AI的差异与融合,https://live.vhall.com/v3/lives/watch/560575636
-圆桌讨论：法务部门如何使用AI赋能工作场景,https://live.vhall.com/v3/lives/watch/626184781
-圆桌讨论：生成式AI对企业合规的挑战与风险防控,https://live.vhall.com/v3/lives/watch/580655488
-生成式AI法律治理：全球热点、法律挑战与合规实践,https://live.vhall.com/v3/lives/watch/627813242
-AI+应用出海合规风险,https://live.vhall.com/v3/lives/watch/254857703
-人工智能的法律边界与出海路径之一,https://live.vhall.com/v3/lives/watch/617378607
-未来法律·AI说-跨境出海中的AI法律应用：从效率工具到准确决策的协同路径,https://live-og3lg6.vhall.cn/v3/lives/watch/998354907
-未来法律·AI说-不是禁用，而是善用：企业法务如何高效、负责任地使用AI？,https://live-og3lg6.vhall.cn/v3/lives/watch/959768469
-未来法律·AI说:AIGC应用中的法律挑战、立法趋势与应对之道,https://live-og3lg6.vhall.cn/v3/lives/watch/178631583
-未来法律·AI说-法律人共创畅想法律AI的未来,https://live-og3lg6.vhall.cn/v3/lives/watch/433075047
-未来法律·AI说-律所与企业双重视角下的人机协同,https://live-og3lg6.vhall.cn/v3/lives/watch/293362594`
-
-  const BOM = '\uFEFF'
-  const blob = new Blob([BOM + templateContent], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = '培训资料导入模板.csv'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
-
-const handleImport = (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    try {
-      const content = event.target.result
-      const lines = content.split(/\r?\n/).filter(line => line.trim())
+  try {
+    const res = await registrationApi.export()
+    if (res.code === 0 && res.data) {
+      const exportData = res.data
+      const worksheet = XLSX.utils.json_to_sheet(exportData)
       
-      if (lines.length < 2) {
-        alert('CSV文件格式错误：至少需要包含标题行和一行数据')
-        return
-      }
+      const colWidths = [
+        { wch: 6 },
+        { wch: 30 },
+        { wch: 60 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 10 },
+        { wch: 20 }
+      ]
+      worksheet['!cols'] = colWidths
 
-      const headerLine = lines[0]
-      const headers = parseCSVLine(headerLine)
-      
-      if (headers.length < 2) {
-        alert('CSV文件格式错误：需要包含"培训名称"和"培训地址"两列')
-        return
-      }
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, '报名信息')
 
-      const importedTrainings = []
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i])
-        if (values.length >= 2 && values[0].trim() && values[1].trim()) {
-          importedTrainings.push({
-            id: Date.now() + i,
-            name: values[0].trim(),
-            videoUrl: values[1].trim(),
-            coverImage: '',
-            createdAt: new Date().toISOString()
-          })
-        }
-      }
-
-      if (importedTrainings.length === 0) {
-        alert('没有找到有效的培训资料数据')
-        return
-      }
-
-      confirmMessage.value = `即将导入 ${importedTrainings.length} 条培训资料，是否继续？\n（将追加到现有数据后）`
-      pendingImportData.value = importedTrainings
-      pendingAction.value = () => {
-        trainings.value = [...trainings.value, ...pendingImportData.value]
-        saveTrainings()
-      }
-      showConfirmModal.value = true
-    } catch (error) {
-      console.error('导入失败:', error)
-      alert('导入失败：文件格式错误')
+      const fileName = `报名信息_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`
+      XLSX.writeFile(workbook, fileName)
     }
+  } catch (error) {
+    console.error('导出失败:', error)
+    alert('导出失败')
   }
-  
-  reader.readAsText(file, 'UTF-8')
-  e.target.value = ''
-}
-
-const parseCSVLine = (line) => {
-  const result = []
-  let current = ''
-  let inQuotes = false
-  
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    
-    if (char === '"') {
-      inQuotes = !inQuotes
-    } else if (char === ',' && !inQuotes) {
-      result.push(current)
-      current = ''
-    } else {
-      current += char
-    }
-  }
-  result.push(current)
-  
-  return result.map(item => item.trim().replace(/^"|"$/g, ''))
 }
 
 const copyQRCodeLink = () => {
@@ -854,39 +484,27 @@ const copyQRCodeLink = () => {
   navigator.clipboard.writeText(url).then(() => {
     alert('链接已复制到剪贴板！')
   }).catch(() => {
-    const input = document.createElement('input')
-    input.value = url
-    document.body.appendChild(input)
-    input.select()
-    document.execCommand('copy')
-    document.body.removeChild(input)
-    alert('链接已复制到剪贴板！')
+    alert('复制失败，请手动复制链接')
   })
 }
 
 const downloadQRCode = () => {
-  const img = new Image()
-  img.crossOrigin = 'anonymous'
-  img.onload = () => {
-    const canvas = document.createElement('canvas')
-    canvas.width = img.width
-    canvas.height = img.height
-    const ctx = canvas.getContext('2d')
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.drawImage(img, 0, 0)
-    const link = document.createElement('a')
-    link.download = '法务AI副驾驶设计大赛网站二维码.png'
-    link.href = canvas.toDataURL('image/png')
-    link.click()
-  }
-  img.onerror = () => {
-    window.open('https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=http://123.57.165.99/ai-contest/', '_blank')
-  }
-  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=http://123.57.165.99/ai-contest/'
+  window.open('https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=http://123.57.165.99/ai-contest/', '_blank')
+}
+
+const handleLogout = () => {
+  localStorage.removeItem('admin_token')
+  localStorage.removeItem('admin_info')
+  router.push('/login')
 }
 
 onMounted(() => {
+  const token = localStorage.getItem('admin_token')
+  if (!token) {
+    router.push('/login')
+    return
+  }
+  
   loadTrainings()
   loadRegistrations()
 })
@@ -906,21 +524,35 @@ onMounted(() => {
 
 .page-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 60px 20px;
+  padding: 40px 20px;
   color: white;
-  text-align: center;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .page-header h1 {
   font-size: 36px;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .page-header p {
   font-size: 16px;
   opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.admin-name {
+  font-size: 14px;
+  opacity: 0.9;
 }
 
 .tabs-section {
@@ -1051,12 +683,14 @@ onMounted(() => {
   font-size: 12px;
 }
 
-.import-label {
-  cursor: pointer;
-}
-
 .main-content {
   padding: 40px 0;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
 }
 
 .manage-list {
@@ -1173,40 +807,6 @@ onMounted(() => {
   border-color: #667eea;
 }
 
-.file-upload {
-  border: 2px dashed #e0e0e0;
-  border-radius: 10px;
-  padding: 30px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.file-upload:hover {
-  border-color: #667eea;
-  background: #f8f9ff;
-}
-
-.upload-placeholder {
-  color: #666;
-}
-
-.upload-icon {
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-.upload-text {
-  font-size: 14px;
-}
-
-.file-preview {
-  width: 100%;
-  max-height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
 .confirm-message {
   font-size: 16px;
   color: #333;
@@ -1313,6 +913,12 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
   .tabs {
     flex-direction: column;
   }

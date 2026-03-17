@@ -10,25 +10,25 @@
       </div>
       <div class="container">
         <div class="hero-content">
-          <div class="hero-badge">海尔集团法务数字化创新</div>
+          <div class="hero-badge">{{ contestInfo.badgeText }}</div>
           <h1 class="hero-title">
-            <span class="title-line">法务"AI副驾驶"</span>
-            <span class="title-highlight">设计大赛</span>
+            <span class="title-line">{{ contestInfo.titleLine }}</span>
+            <span class="title-highlight">{{ contestInfo.titleHighlight }}</span>
           </h1>
-          <p class="hero-subtitle">让法务拥有自己的"AI副驾驶"！</p>
+          <p class="hero-subtitle">{{ contestInfo.subtitle }}</p>
           <div class="hero-stats">
             <div class="stat-item">
-              <span class="stat-number">5</span>
+              <span class="stat-number">{{ contestInfo.statPhases }}</span>
               <span class="stat-label">比赛阶段</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-              <span class="stat-number">10+</span>
+              <span class="stat-number">{{ contestInfo.statTrainings }}</span>
               <span class="stat-label">培训场次</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-              <span class="stat-number">∞</span>
+              <span class="stat-number">{{ contestInfo.statCreative }}</span>
               <span class="stat-label">创意可能</span>
             </div>
           </div>
@@ -60,7 +60,7 @@
         <div class="poster-grid">
           <div class="poster-card main-card">
             <div class="card-glow"></div>
-            <img src="/poster.jpg" alt="大赛海报" class="poster-img" />
+            <img :src="contestInfo.posterUrl || '/poster.jpg'" alt="大赛海报" class="poster-img" />
           </div>
           
           <div class="info-cards">
@@ -94,7 +94,7 @@
             >
               <div class="timeline-node">
                 <div class="node-inner">
-                  <span class="node-number">{{ stage.id }}</span>
+                  <span class="node-number">{{ index + 1 }}</span>
                 </div>
                 <div class="node-pulse" v-if="index === currentStage - 1"></div>
               </div>
@@ -142,33 +142,26 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { contestApi } from '../api/contest.js'
 
 const currentStage = 1
+const loading = ref(false)
 
-const progressWidth = computed(() => {
-  return ((currentStage - 0.5) / stages.length * 100) + '%'
+const basePath = import.meta.env.BASE_URL || '/ai-contest/'
+
+const contestInfo = ref({
+  titleLine: '法务"AI副驾驶"',
+  titleHighlight: '设计大赛',
+  subtitle: '让法务拥有自己的"AI副驾驶"！',
+  badgeText: '海尔集团法务数字化创新',
+  statPhases: '5',
+  statTrainings: '10+',
+  statCreative: '∞',
+  posterUrl: basePath + 'poster.jpg'
 })
 
-const getParticleStyle = (n) => {
-  const random = (min, max) => Math.random() * (max - min) + min
-  return {
-    left: random(0, 100) + '%',
-    top: random(0, 100) + '%',
-    animationDelay: random(0, 5) + 's',
-    animationDuration: random(10, 20) + 's'
-  }
-}
-
-const stages = [
-  { id: 1, name: 'AI应用技巧培训', description: '系统学习AI应用技能，掌握主流AI工具使用方法', time: '3月-4月' },
-  { id: 2, name: '创意提交与评审', description: '发挥创意，提出AI副驾驶应用场景构想', time: '5月初' },
-  { id: 3, name: '智能体培训实战', description: '学习构建复杂智能体，掌握Agent模板', time: '6月-8月' },
-  { id: 4, name: '作品提交与评审', description: '提交复杂智能体设计作品，展示实战成果', time: '9月初' },
-  { id: 5, name: '应用开发与上线', description: '进阶实战，打造高质量应用成果', time: '10月-12月' }
-]
-
-const infoCards = [
+const infoCards = ref([
   {
     icon: '👥',
     title: '参赛对象',
@@ -184,51 +177,78 @@ const infoCards = [
     title: '大赛亮点',
     content: '零门槛参与，全程培训指导；创意无限，设计专属AI副驾驶；优秀创意落地实施。'
   }
-]
+])
 
-const aiTools = [
-  {
-    category: 'AI对话助手',
-    icon: '💬',
-    tools: [
-      { name: 'Kimi', url: 'https://kimi.moonshot.cn', rank: 1, recommend: '推荐', desc: '长文本处理能力强' },
-      { name: '通义千问', url: 'https://tongyi.aliyun.com', rank: 2, recommend: '推荐', desc: '阿里出品，功能全面' },
-      { name: '文心一言', url: 'https://yiyan.baidu.com', rank: 3, recommend: '推荐', desc: '百度出品，中文理解好' },
-      { name: '豆包', url: 'https://www.doubao.com', rank: 4, desc: '字节跳动出品' },
-      { name: '智谱清言', url: 'https://chatglm.cn', rank: 5, desc: '清华技术背景' }
-    ]
-  },
-  {
-    category: 'AI写作工具',
-    icon: '✍️',
-    tools: [
-      { name: 'Kimi', url: 'https://kimi.moonshot.cn', rank: 1, recommend: '推荐', desc: '文档处理能力强' },
-      { name: '通义千问', url: 'https://tongyi.aliyun.com', rank: 2, recommend: '推荐', desc: '写作辅助功能丰富' },
-      { name: '秘塔写作猫', url: 'https://xiezuocat.com', rank: 3, desc: '专业写作助手' },
-      { name: '讯飞写作', url: 'https://writing.iflyrec.com', rank: 4, desc: '语音转写+写作' }
-    ]
-  },
-  {
-    category: 'AI绘图工具',
-    icon: '🎨',
-    tools: [
-      { name: '即梦AI', url: 'https://jimeng.jianying.com', rank: 1, recommend: '推荐', desc: '字节出品，中文理解好' },
-      { name: '通义万相', url: 'https://tongyi.aliyun.com/wanxiang', rank: 2, recommend: '推荐', desc: '阿里出品，功能强大' },
-      { name: '文心一格', url: 'https://yige.baidu.com', rank: 3, desc: '百度出品' },
-      { name: '混元助手', url: 'https://hunyuan.tencent.com', rank: 4, desc: '腾讯出品' }
-    ]
-  },
-  {
-    category: 'AI办公工具',
-    icon: '💼',
-    tools: [
-      { name: 'Kimi', url: 'https://kimi.moonshot.cn', rank: 1, recommend: '推荐', desc: '文档分析能力强' },
-      { name: '飞书智能伙伴', url: 'https://www.feishu.cn/product/feishu-ai', rank: 2, recommend: '推荐', desc: '企业协作首选' },
-      { name: '通义千问', url: 'https://tongyi.aliyun.com', rank: 3, desc: '文档处理功能全' },
-      { name: 'WPS AI', url: 'https://ai.wps.cn', rank: 4, desc: '办公文档智能' }
-    ]
+const stages = ref([
+  { id: 1, name: 'AI应用技巧培训', description: '系统学习AI应用技能，掌握主流AI工具使用方法', time: '3月-4月' },
+  { id: 2, name: '创意提交与评审', description: '发挥创意，提出AI副驾驶应用场景构想', time: '5月初' },
+  { id: 3, name: '智能体培训实战', description: '学习构建复杂智能体，掌握Agent模板', time: '6月-8月' },
+  { id: 4, name: '作品提交与评审', description: '提交复杂智能体设计作品，展示实战成果', time: '9月初' },
+  { id: 5, name: '应用开发与上线', description: '进阶实战，打造高质量应用成果', time: '10月-12月' }
+])
+
+const aiTools = ref([])
+
+const progressWidth = computed(() => {
+  return ((currentStage - 0.5) / stages.value.length * 100) + '%'
+})
+
+const getParticleStyle = (n) => {
+  const random = (min, max) => Math.random() * (max - min) + min
+  return {
+    left: random(0, 100) + '%',
+    top: random(0, 100) + '%',
+    animationDelay: random(0, 5) + 's',
+    animationDuration: random(10, 20) + 's'
   }
-]
+}
+
+const loadContestInfo = async () => {
+  try {
+    loading.value = true
+    const res = await contestApi.getInfo()
+    
+    if (res.code === 0 && res.data) {
+      const data = res.data
+      
+      const titleParts = data.title ? data.title.split('"') : ['法务"AI副驾驶"', '设计大赛']
+      if (titleParts.length >= 3) {
+        contestInfo.value.titleLine = titleParts[0] + '"' + titleParts[1] + '"'
+        contestInfo.value.titleHighlight = titleParts[2] || '设计大赛'
+      } else {
+        contestInfo.value.titleLine = data.title || '法务"AI副驾驶"'
+        contestInfo.value.titleHighlight = '设计大赛'
+      }
+      
+      contestInfo.value.subtitle = data.subtitle || contestInfo.value.subtitle
+      contestInfo.value.badgeText = data.badgeText || contestInfo.value.badgeText
+      contestInfo.value.statPhases = data.statPhases || contestInfo.value.statPhases
+      contestInfo.value.statTrainings = data.statTrainings || contestInfo.value.statTrainings
+      contestInfo.value.statCreative = data.statCreative || contestInfo.value.statCreative
+      contestInfo.value.posterUrl = data.posterUrl ? (basePath + data.posterUrl.replace(/^\//, '')) : contestInfo.value.posterUrl
+      
+      if (data.infoCards && data.infoCards.length > 0) {
+        infoCards.value = data.infoCards
+      }
+      
+      if (data.stages && data.stages.length > 0) {
+        stages.value = data.stages
+      }
+      
+      if (data.aiTools && data.aiTools.length > 0) {
+        aiTools.value = data.aiTools
+      }
+    }
+  } catch (error) {
+    console.error('加载大赛信息失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadContestInfo()
+})
 </script>
 
 <style scoped>

@@ -8,7 +8,11 @@
     </section>
 
     <section class="container main-content">
-      <div class="materials-grid">
+      <div v-if="loading" class="loading-state">
+        <p>加载中...</p>
+      </div>
+      
+      <div v-else class="materials-grid">
         <div 
           class="material-card" 
           v-for="training in trainings" 
@@ -31,7 +35,7 @@
         </div>
       </div>
 
-      <div v-if="trainings.length === 0" class="empty-state">
+      <div v-if="!loading && trainings.length === 0" class="empty-state">
         <p>暂无培训资料</p>
       </div>
     </section>
@@ -40,117 +44,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-
-const STORAGE_KEY = 'ai-contest-trainings'
+import { trainingApi } from '../api/training.js'
 
 const trainings = ref([])
+const loading = ref(false)
 
-const loadTrainings = () => {
-  const data = localStorage.getItem(STORAGE_KEY)
-  if (data) {
-    trainings.value = JSON.parse(data)
-  } else {
-    trainings.value = [
-      {
-        id: 1,
-        name: 'AI说-AI赋能法律人工作：原理、工具',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/763568303',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        name: '圆桌论坛：生成式AI对企业合规的挑战',
-        videoUrl: 'https://t.568live.cn/FK1YtW',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 3,
-        name: '主题演讲：全球视角下的AI合规与监管趋势',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/686916117',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 4,
-        name: '专家视角：通用型AI与法律AI的差异与融合',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/560575636',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 5,
-        name: '圆桌讨论：法务部门如何使用AI赋能工作场景',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/626184781',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 6,
-        name: '圆桌讨论：生成式AI对企业合规的挑战与风险防控',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/580655488',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 7,
-        name: '生成式AI法律治理：全球热点、法律挑战与合规实践',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/627813242',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 8,
-        name: 'AI+应用出海合规风险',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/254857703',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 9,
-        name: '人工智能的法律边界与出海路径之一',
-        videoUrl: 'https://live.vhall.com/v3/lives/watch/617378607',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 10,
-        name: '未来法律·AI说-跨境出海中的AI法律应用：从效率工具到准确决策的协同路径',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/998354907',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 11,
-        name: '未来法律·AI说-不是禁用，而是善用：企业法务如何高效、负责任地使用AI？',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/959768469',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 12,
-        name: '未来法律·AI说:AIGC应用中的法律挑战、立法趋势与应对之道',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/178631583',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 13,
-        name: '未来法律·AI说-法律人共创畅想法律AI的未来',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/433075047',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 14,
-        name: '未来法律·AI说-律所与企业双重视角下的人机协同',
-        videoUrl: 'https://live-og3lg6.vhall.cn/v3/lives/watch/293362594',
-        coverImage: '',
-        createdAt: new Date().toISOString()
-      }
-    ]
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(trainings.value))
+const loadTrainings = async () => {
+  try {
+    loading.value = true
+    const res = await trainingApi.getList()
+    
+    if (res.code === 0 && res.data) {
+      trainings.value = res.data.list || []
+    }
+  } catch (error) {
+    console.error('加载培训资料失败:', error)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -200,6 +110,12 @@ onMounted(() => {
 
 .main-content {
   padding: 40px 0;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
 }
 
 .materials-grid {
