@@ -1,0 +1,16 @@
+- [ ] Skill 标准接口定义清晰，所有必需方法都有签名
+- [ ] 配置文件 `server/config/skill.js` 创建并包含完整的 Skill 注册表
+- [ ] skillService.js 重构完成，支持动态加载 Skill 模块
+- [ ] 多级降级机制实现 (主 Skill → 备用 Skill → 本地简化版)
+- [ ] requirement.js 路由修改完成，通过 skillService 代理调用
+- [ ] 新 Skill 实现示例创建，遵循 ISkill 接口规范
+- [ ] 健康检查接口 `/api/requirement/health` 返回正确的 Skill 信息
+- [ ] Skill 切换功能验证通过 (修改配置后重启生效)
+- [ ] Skill 降级功能验证通过 (主 Skill 失败时自动降级)
+- [ ] 所有单元测试通过 (skill-interface.test.js)
+- [ ] 所有集成测试通过 (skill-switch.test.js)
+- [ ] 性能测试通过 (响应时间 < 500ms, 并发 > 10 QPS)
+- [ ] 前端功能验证通过 (创意工坊对话正常)
+- [ ] 迁移指南 `SKILL_MIGRATION.md` 编写完成
+- [ ] API 文档更新完成
+- [ ] 回滚方案验证通过 (能够快速切换回旧 Skill)

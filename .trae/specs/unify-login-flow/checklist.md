@@ -1,0 +1,23 @@
+- [x] `/login` 路由已重定向到 `/user/login`
+- [x] 登录页正确读取 redirect 参数
+- [x] 登录成功后优先跳转到 redirect 参数指定的页面
+- [x] redirect 页面需要特定角色时，正确验证用户角色
+- [x] 角色不匹配时跳转到默认页面并显示提示
+- [x] 管理员默认跳转到 `/training-admin`
+- [x] 普通用户默认跳转到 `/requirement`
+- [x] `/training-admin` 路由配置了 `requiresRole: 'admin'`
+- [x] `/requirement` 路由配置了 `requiresRole: ['user', 'admin']`
+- [x] 路由守卫统一使用 `user_token` 和 `user_info`
+- [x] 路由守卫正确验证 `requiresRole` 元数据
+- [x] 支持角色数组验证（一个路由允许多个角色）
+- [x] 未登录时正确跳转到 `/user/login?redirect=原路径`
+- [x] 角色不匹配时显示提示并跳转到首页或默认页面
+- [x] 导航栏"后台管理"菜单仅对管理员显示
+- [x] 导航栏"创意工坊"菜单对管理员和普通用户显示
+- [x] 用户状态管理统一使用 user_token 和 user_info
+- [x] login action 正确保存用户信息（包含 role 字段）
+- [x] 普通用户访问创意工坊流程正确
+- [x] 管理员访问后台管理流程正确
+- [x] 普通用户尝试访问后台管理时被拒绝并提示
+- [x] 登录后菜单显示与用户角色匹配
+- [x] 所有受保护的路由都有正确的 meta 配置

@@ -39,6 +39,13 @@
           >
             网站二维码
           </button>
+          <button 
+            class="tab-btn" 
+            :class="{ active: activeTab === 'accounts' }"
+            @click="activeTab = 'accounts'"
+          >
+            账号管理
+          </button>
         </div>
       </div>
     </section>
@@ -128,9 +135,33 @@
       </div>
     </section>
 
+    <section class="toolbar" v-show="activeTab === 'accounts'">
+      <div class="container">
+        <div class="toolbar-content">
+          <div class="toolbar-left">
+            <span class="stats">共 {{ users.length }} 条用户记录</span>
+          </div>
+          <div class="toolbar-right">
+            <input 
+              type="text" 
+              v-model="userSearch" 
+              placeholder="搜索用户名/邮箱"
+              class="search-input"
+              @input="loadUsers"
+            >
+            <select v-model="userRoleFilter" @change="loadUsers" class="role-filter">
+              <option value="">全部角色</option>
+              <option value="user">一般用户</option>
+              <option value="admin">管理员</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="container main-content qrcode-content" v-show="activeTab === 'qrcode'">
       <div class="qrcode-card">
-        <h3>法务"AI副驾驶"设计大赛网站二维码</h3>
+        <h3>法务"AI 副驾驶"设计大赛网站二维码</h3>
         <p class="qrcode-url">http://123.57.165.99/ai-contest/</p>
         <div class="qrcode-wrapper">
           <img 
@@ -144,6 +175,58 @@
           <button class="btn btn-primary" @click="copyQRCodeLink">复制链接</button>
           <button class="btn btn-outline" @click="downloadQRCode">下载二维码</button>
         </div>
+      </div>
+    </section>
+
+    <section class="container main-content" v-show="activeTab === 'accounts'">
+      <div v-if="userLoading" class="loading-state">
+        <p>加载中...</p>
+      </div>
+      
+      <div v-else class="manage-list">
+        <div class="manage-item" v-for="user in users" :key="user.id">
+          <div class="manage-item-index">{{ users.indexOf(user) + 1 }}</div>
+          <div class="manage-item-info">
+            <h4>{{ user.username }}</h4>
+            <p class="user-meta">
+              <span>邮箱：{{ user.email }}</span>
+              <span>密码：{{ getDefaultPassword(user) }}</span>
+              <span>角色：
+                <span :class="['role-badge', user.role]">
+                  {{ user.role === 'admin' ? '管理员' : '用户' }}
+                </span>
+              </span>
+              <span>注册时间：{{ formatDate(user.createdAt) }}</span>
+            </p>
+          </div>
+          <div class="manage-item-actions">
+            <button class="btn btn-danger btn-sm" @click="confirmDeleteUser(user)">删除</button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!userLoading && users.length === 0" class="empty-state">
+        <p>暂无用户记录</p>
+        <p class="hint">等待用户注册</p>
+      </div>
+      
+      <!-- 分页 -->
+      <div class="pagination" v-if="totalPages > 1">
+        <button 
+          class="btn btn-outline btn-sm" 
+          @click="changePage(currentPage - 1)"
+          :disabled="currentPage === 1"
+        >
+          上一页
+        </button>
+        <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
+        <button 
+          class="btn btn-outline btn-sm" 
+          @click="changePage(currentPage + 1)"
+          :disabled="currentPage === totalPages"
+        >
+          下一页
+        </button>
       </div>
     </section>
 
@@ -244,6 +327,7 @@ import Modal from '../components/Modal.vue'
 import * as XLSX from 'xlsx'
 import { trainingApi } from '../api/training.js'
 import { registrationApi } from '../api/registration.js'
+import { adminUserApi } from '../api/user.js'
 
 const router = useRouter()
 
@@ -277,6 +361,72 @@ const adminInfo = computed(() => {
   const info = localStorage.getItem('admin_info')
   return info ? JSON.parse(info) : null
 })
+
+// 账号管理相关
+const users = ref([])
+const userLoading = ref(false)
+const userSearch = ref('')
+const userRoleFilter = ref('')
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalUsers = ref(0)
+const deleteUserConfirm = ref(null)
+
+const loadUsers = async () => {
+  try {
+    userLoading.value = true
+    const params = {
+      page: currentPage.value,
+      pageSize: 10,
+      search: userSearch.value,
+      role: userRoleFilter.value
+    }
+    
+    const res = await adminUserApi.getUsers(params)
+    if (res.code === 200) {
+      users.value = res.data.users
+      totalUsers.value = res.data.total
+      totalPages.value = res.data.totalPages
+    }
+  } catch (error) {
+    console.error('加载用户列表失败:', error)
+  } finally {
+    userLoading.value = false
+  }
+}
+
+const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  loadUsers()
+}
+
+const confirmDeleteUser = (user) => {
+  deleteUserConfirm.value = user
+  confirmMessage.value = `确定要删除用户"${user.username}"吗？此操作不可恢复！`
+  pendingAction.value = deleteUser
+  showConfirmModal.value = true
+}
+
+const deleteUser = async () => {
+  if (!deleteUserConfirm.value) return
+  
+  try {
+    submitting.value = true
+    const res = await adminUserApi.deleteUser(deleteUserConfirm.value.id)
+    if (res.code === 200) {
+      await loadUsers()
+      deleteUserConfirm.value = null
+    } else {
+      alert(res.message || '删除失败')
+    }
+  } catch (error) {
+    console.error('删除用户失败:', error)
+    alert(error.message || '删除失败')
+  } finally {
+    submitting.value = false
+  }
+}
 
 const loadTrainings = async () => {
   try {
@@ -315,6 +465,13 @@ const formatDate = (dateStr) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const getDefaultPassword = (user) => {
+  if (user.username === 'admin') {
+    return 'admin123 (默认)'
+  }
+  return '******'
 }
 
 const openVideo = (url) => {
@@ -507,6 +664,7 @@ onMounted(() => {
   
   loadTrainings()
   loadRegistrations()
+  loadUsers()
 })
 </script>
 
@@ -910,6 +1068,75 @@ onMounted(() => {
   display: flex;
   gap: 15px;
   justify-content: center;
+}
+
+.search-input {
+  padding: 8px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  font-size: 14px;
+  width: 200px;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.role-filter {
+  padding: 8px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.role-filter:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.user-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  font-size: 13px;
+  color: #888;
+  margin-top: 5px;
+}
+
+.role-badge {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.role-badge.admin {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.role-badge.user {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+  padding: 20px 0;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #666;
 }
 
 @media (max-width: 768px) {

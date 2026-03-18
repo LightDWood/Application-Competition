@@ -3,8 +3,8 @@
     <div class="login-container">
       <div class="login-card">
         <div class="login-header">
-          <h1>后台管理登录</h1>
-          <p>AI创意大赛管理系统</p>
+          <h1>AI 副驾驶创意工坊</h1>
+          <p>让 AI 副驾驶帮你澄清创意需求</p>
         </div>
         
         <form @submit.prevent="handleLogin">

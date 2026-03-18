@@ -58,18 +58,24 @@ const startServer = async () => {
     await db.sequelize.authenticate()
     console.log('数据库连接成功')
     
-    await db.sequelize.sync({ alter: true })
+    // 禁用 alter 模式，避免索引累积问题
+    // 如需修改表结构，请手动执行 SQL 或使用迁移脚本
+    await db.sequelize.sync()
     console.log('数据库表同步完成')
     
-    const { Admin } = db
-    const adminCount = await Admin.count()
+    const { User } = db
+    const adminUserCount = await User.count({
+      where: { role: 'admin' }
+    })
     
-    if (adminCount === 0) {
-      await Admin.create({
+    if (adminUserCount === 0) {
+      await User.create({
         username: 'admin',
-        password_hash: 'admin123'
+        email: 'admin@ai-contest.com',
+        password_hash: 'admin123',
+        role: 'admin'
       })
-      console.log('默认管理员已创建 (用户名: admin, 密码: admin123)')
+      console.log('默认管理员已创建 (用户名：admin, 密码：admin123, 角色：admin)')
     }
     
     app.listen(PORT, () => {

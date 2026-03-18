@@ -53,6 +53,15 @@
                 培训资料
               </router-link>
             </li>
+            <li v-if="userRole">
+              <router-link 
+                to="/requirement" 
+                :class="{ active: activeMenu === 'requirement' }"
+                @click="menuOpen = false"
+              >
+                ✨ 创意工坊
+              </router-link>
+            </li>
             <li>
               <router-link 
                 to="/registration" 
@@ -60,6 +69,15 @@
                 @click="menuOpen = false"
               >
                 大赛报名
+              </router-link>
+            </li>
+            <li v-if="showAdminMenu">
+              <router-link 
+                to="/training-admin" 
+                :class="{ active: activeMenu === 'admin' }"
+                @click="menuOpen = false"
+              >
+                后台管理
               </router-link>
             </li>
           </ul>
@@ -86,7 +104,21 @@ const isHome = computed(() => route.path === '/')
 const activeMenu = computed(() => {
   if (route.path === '/training') return 'training'
   if (route.path === '/registration') return 'registration'
+  if (route.path.startsWith('/requirement')) return 'requirement'
   return 'home'
+})
+
+const userRole = computed(() => {
+  const userInfo = localStorage.getItem('user_info')
+  if (userInfo) {
+    const user = JSON.parse(userInfo)
+    return user.role
+  }
+  return null
+})
+
+const showAdminMenu = computed(() => {
+  return userRole.value === 'admin'
 })
 </script>
 
@@ -168,9 +200,23 @@ const activeMenu = computed(() => {
   padding: 5px 0;
 }
 
-.nav a:hover,
+.nav a:hover {
+  color: #667eea;
+}
+
 .nav a.active {
   color: #667eea;
+  position: relative;
+}
+
+.nav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
 }
 
 .menu-toggle {
