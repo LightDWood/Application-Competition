@@ -1,0 +1,30 @@
+agentId: default-agent
+name: AI助手
+defaultModelId: Qwen3.5-35B-A3B
+features:
+  - 需求分析
+  - 闲聊问答
+  - 文档生成
+  - 代码辅助
+permissions:
+  - resource: session
+    actions:
+      - create
+      - read
+      - write
+  - resource: artifact
+    actions:
+      - create
+      - read
+      - write
+      - delete
+boundaries:
+  - type: forbid
+    scope: 政治敏感
+    description: 禁止讨论政治敏感话题
+  - type: restrict
+    scope: 专业范围
+    description: 仅在设定的专业范围内提供建议
+  - type: warn
+    scope: 个人信息
+    description: 涉及个人信息时提醒用户保护隐私

@@ -1,0 +1,30 @@
+providers:
+  - id: haier-primary
+    name: Haier Primary
+    providerType: custom
+    apiEndpoint: https://modelapi-test.haier.net/model/v1
+    apiKey: apikey-69b8f5c1e4b0c281b94a4c49
+    capabilities:
+      - chat
+      - completion
+    supportedModels:
+      - Qwen3.5-35B-A3B
+      - MiniMax-M2
+      - deepseek-v3
+      - Qwen3-Coder-480B-A35B-Instruct
+    defaults:
+      temperature: 0.7
+      maxTokens: 8192
+      topP: 0.95
+      timeout: 60000
+    retryConfig:
+      maxAttempts: 3
+      backoffMs: 1000
+      retryOn:
+        - rate_limit
+        - server_error
+        - timeout
+    cacheConfig:
+      enabled: false
+      ttlMinutes: 5
+      maxSize: 100

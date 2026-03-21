@@ -149,8 +149,5 @@ export class PersonaEngine {
   }
 }
 
-// 导出统一入口类
-export { PersonaEngine };
-
 // 默认导出
 export default PersonaEngine;

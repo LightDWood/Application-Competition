@@ -18,6 +18,11 @@ const sequelize = new Sequelize(
     dialect: 'mysql',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     timezone: '+08:00',
+    charset: 'utf8mb4',
+    collation: 'utf8mb4_unicode_ci',
+    dialectOptions: {
+      charset: 'utf8mb4'
+    },
     define: {
       timestamps: true,
       underscored: true,

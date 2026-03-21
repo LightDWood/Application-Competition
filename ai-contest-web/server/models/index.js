@@ -1,5 +1,4 @@
 import sequelize from '../config/database.js'
-import Admin from './Admin.js'
 import Training from './Training.js'
 import Registration from './Registration.js'
 import ContestInfo from './ContestInfo.js'
@@ -28,7 +27,6 @@ DocumentVersion.belongsTo(User, { foreignKey: 'created_by', as: 'creator' })
 
 const db = {
   sequelize,
-  Admin,
   Training,
   Registration,
   ContestInfo,

@@ -49,7 +49,6 @@ export {
   InMemoryVersionStore,
   VersionComparator,
   VersionManager,
-  VersionComparisonResult,
   generateVersionComparisonReport,
   createVersionComparator,
   createVersionManager,

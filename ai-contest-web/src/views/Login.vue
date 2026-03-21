@@ -46,7 +46,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { authApi } from '../api/auth.js'
+import { userAuthApi } from '../api/user.js'
 
 const router = useRouter()
 const loading = ref(false)
@@ -67,12 +67,12 @@ const handleLogin = async () => {
   errorMsg.value = ''
   
   try {
-    const res = await authApi.login(form.value.username, form.value.password)
-    
+    const res = await userAuthApi.login(form.value.username, form.value.password)
+
     if (res.code === 0 && res.data) {
-      localStorage.setItem('admin_token', res.data.token)
-      localStorage.setItem('admin_info', JSON.stringify(res.data.admin))
-      router.push('/admin')
+      localStorage.setItem('user_token', res.data.token)
+      localStorage.setItem('user_info', JSON.stringify(res.data.user))
+      router.push('/requirement')
     } else {
       errorMsg.value = res.message || '登录失败'
     }

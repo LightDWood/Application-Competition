@@ -84,13 +84,21 @@ const streamingContent = ref('')
 const messagesContainer = ref(null)
 const showTitleEdit = ref(false)
 const editTitle = ref('')
+const errorMsg = ref('')
 
 const fetchSession = async () => {
   try {
-    const res = await sessionApi.getById(sessionId)
-    if (res.code === 0) {
+    const res = await sessionApi.v2.getById(sessionId)
+    if (res.success) {
       session.value = res.data
+      messages.value = res.data.history || []
       editTitle.value = res.data.title
+      nextTick(() => scrollToBottom())
+    } else if (res.code === 0) {
+      session.value = res.data
+      messages.value = res.data.history || []
+      editTitle.value = res.data.title
+      nextTick(() => scrollToBottom())
     }
   } catch (error) {
     console.error('获取会话失败:', error)
@@ -99,10 +107,13 @@ const fetchSession = async () => {
 
 const fetchMessages = async () => {
   try {
-    const res = await sessionApi.getMessages(sessionId, { pageSize: 1000 })
-    if (res.code === 0) {
-      messages.value = res.data.list
-      scrollToBottom()
+    const res = await sessionApi.v2.getById(sessionId)
+    if (res.success) {
+      messages.value = res.data.history || []
+      nextTick(() => scrollToBottom())
+    } else if (res.code === 0) {
+      messages.value = res.data.history || []
+      nextTick(() => scrollToBottom())
     }
   } catch (error) {
     console.error('获取消息失败:', error)
@@ -123,7 +134,23 @@ const sendMessage = async () => {
   let buffer = ''
   
   try {
-    const response = await sessionApi.chat(sessionId, content)
+    const response = await sessionApi.v2.chat(sessionId, content)
+    
+    if (!response.ok) {
+      console.error('Chat API error:', response.status, response.statusText)
+      let errorMsg = '发送消息失败'
+      try {
+        const errorData = await response.json()
+        errorMsg = errorData.error || errorMsg
+      } catch {}
+      throw new Error(errorMsg)
+    }
+    
+    if (!response.body) {
+      console.error('Response body is null')
+      throw new Error('服务器响应无效')
+    }
+    
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     
@@ -150,8 +177,11 @@ const sendMessage = async () => {
               streamingContent.value += data.content
               totalContentLength += data.content.length
               scrollToBottom()
-            } else if (data.type === 'done') {
+            } else if (data.type === 'done' || data.type === 'complete') {
               await fetchMessages()
+            } else if (data.type === 'error') {
+              console.error('SSE error:', data.message)
+              errorMsg.value = data.message || '处理消息失败'
             }
           } catch (parseError) {
             console.error('解析 SSE 数据失败:', parseError, 'line:', line)
@@ -195,7 +225,7 @@ const sendMessage = async () => {
 
 const saveTitle = async () => {
   try {
-    const res = await sessionApi.update(sessionId, { title: editTitle.value })
+    const res = await sessionApi.v2.update(sessionId, { title: editTitle.value })
     if (res.code === 0) {
       session.value.title = editTitle.value
       showTitleEdit.value = false
@@ -217,6 +247,13 @@ const scrollToBottom = () => {
 
 const formatContent = (content) => {
   if (!content) return ''
+  if (typeof content !== 'string') {
+    if (content && content.text) {
+      return md.render(content.text)
+    }
+    console.warn('formatContent received non-string content:', typeof content, content)
+    return String(content)
+  }
   return md.render(content)
 }
 

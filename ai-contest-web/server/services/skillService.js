@@ -1047,6 +1047,42 @@ class SkillService {
           why: '时间约束影响技术选型和功能范围'
         });
       }
+
+      if (missingElements.some(e => typeof e === 'string' ? e.includes('What') || e.includes('功能') : e.dimension?.includes('What'))) {
+        questions.push({
+          category: '功能需求',
+          question: '这个功能需要包含哪些具体功能？',
+          options: ['用户管理', '数据统计', '消息通知', '文件管理', '其他'],
+          why: '明确功能范围有助于确定开发工作量和优先级'
+        });
+      }
+
+      if (missingElements.some(e => typeof e === 'string' ? e.includes('Where') || e.includes('场景') || e.includes('平台') : e.dimension?.includes('Where'))) {
+        questions.push({
+          category: '使用场景',
+          question: '主要在哪些场景下使用这个功能？',
+          options: ['PC Web', '移动端H5', '小程序', '原生APP', '多端适配'],
+          why: '不同平台的技术方案和用户体验设计差异较大'
+        });
+      }
+
+      if (missingElements.some(e => typeof e === 'string' ? e.includes('How') || e.includes('实现') || e.includes('技术') : e.dimension?.includes('How'))) {
+        questions.push({
+          category: '实现方式',
+          question: '对技术实现有什么偏好或限制吗？',
+          options: ['前端Vue/React', '后端Java/Node.js', '数据库MySQL/MongoDB', '部署方式Docker/K8s', '无特殊要求'],
+          why: '技术选型影响开发效率和后期维护'
+        });
+      }
+
+      if (missingElements.some(e => typeof e === 'string' ? e.includes('HowMuch') || e.includes('成本') || e.includes('预算') || e.includes('资源') : e.dimension?.includes('HowMuch'))) {
+        questions.push({
+          category: '成本资源',
+          question: '这个项目的预算范围是多少？',
+          options: ['1万以内', '1-5万', '5-10万', '10万以上', '暂无预算'],
+          why: '预算决定功能范围和技术方案的选择空间'
+        });
+      }
     }
 
     if (riskItems.some(r => r.type === 'vague')) {

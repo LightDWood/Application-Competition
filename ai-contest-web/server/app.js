@@ -3,6 +3,7 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
 import db from './models/index.js'
 import routes from './routes/index.js'
 
@@ -11,18 +12,36 @@ const __dirname = path.dirname(__filename)
 
 dotenv.config({ path: path.join(__dirname, '.env') })
 
+const requiredEnvVars = ['JWT_SECRET']
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`FATAL: ${envVar} environment variable is required but not set`)
+    process.exit(1)
+  }
+}
+
 const app = express()
 const PORT = process.env.PORT || 3000
 
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || ['http://localhost:5175', 'http://localhost:3000']
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true)
+    } else {
+      callback(new Error(`CORS: Origin ${origin} not allowed`))
+    }
+  },
   credentials: true
 }))
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use('/artifacts', express.static(path.join(__dirname, 'artifacts')))
 
 app.use('/api', routes)
 

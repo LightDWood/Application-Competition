@@ -2,7 +2,8 @@ import express from 'express'
 import jwt from 'jsonwebtoken'
 import { Op } from 'sequelize'
 import db from '../models/index.js'
-import userAuthMiddleware from '../middleware/userAuth.js'
+import authMiddleware from '../middleware/auth.js'
+import { sanitizeError } from '../utils/sanitize.js'
 
 const router = express.Router()
 const { User } = db
@@ -44,36 +45,53 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password_hash: password,
-      role: 'user'  // 默认角色为一般用户
+      role: 'user'
     })
-    
-    const token = jwt.sign(
+
+    const accessToken = jwt.sign(
       {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role
       },
-      process.env.JWT_SECRET || 'ai-contest-secret-key',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
     )
-    
+
+    const refreshToken = jwt.sign(
+      {
+        id: user.id,
+        type: 'refresh'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d' }
+    )
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    })
+
     res.status(201).json({
       code: 0,
       message: '注册成功',
       data: {
-        token,
+        accessToken,
         user: {
           id: user.id,
           username: user.username,
           email: user.email,
-          role: user.role,  // 新增
+          role: user.role,
           avatar_url: user.avatar_url,
           created_at: user.created_at
         }
       }
     })
   } catch (error) {
-    console.error('Register error:', error)
+    console.error('Register error:', sanitizeError(error))
     res.status(500).json({
       code: 500,
       message: '注册失败'
@@ -126,22 +144,39 @@ router.post('/login', async (req, res) => {
     }
     
     await user.update({ last_login_at: new Date() })
-    
-    const token = jwt.sign(
+
+    const accessToken = jwt.sign(
       {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role
       },
-      process.env.JWT_SECRET || 'ai-contest-secret-key',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
     )
-    
+
+    const refreshToken = jwt.sign(
+      {
+        id: user.id,
+        type: 'refresh'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d' }
+    )
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    })
+
     res.json({
       code: 0,
       message: '登录成功',
       data: {
-        token,
+        accessToken,
         user: {
           id: user.id,
           username: user.username,
@@ -153,7 +188,7 @@ router.post('/login', async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Login error:', error)
+    console.error('Login error:', sanitizeError(error))
     res.status(500).json({
       code: 500,
       message: '登录失败'
@@ -161,14 +196,84 @@ router.post('/login', async (req, res) => {
   }
 })
 
-router.post('/logout', userAuthMiddleware, async (req, res) => {
+router.post('/refresh', async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        code: 401,
+        message: 'Refresh Token缺失'
+      })
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET)
+
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        code: 401,
+        message: '无效的Refresh Token'
+      })
+    }
+
+    const user = await User.findByPk(decoded.id)
+
+    if (!user) {
+      return res.status(401).json({
+        code: 401,
+        message: '用户不存在'
+      })
+    }
+
+    const newAccessToken = jwt.sign(
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+    )
+
+    const newRefreshToken = jwt.sign(
+      {
+        id: user.id,
+        type: 'refresh'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d' }
+    )
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    })
+
+    res.json({
+      code: 0,
+      data: { accessToken: newAccessToken }
+    })
+  } catch (error) {
+    console.error('Refresh error:', sanitizeError(error))
+    res.status(401).json({
+      code: 401,
+      message: 'Refresh Token无效'
+    })
+  }
+})
+
+router.post('/logout', authMiddleware, async (req, res) => {
+  res.clearCookie('refreshToken')
   res.json({
     code: 0,
     message: '登出成功'
   })
 })
 
-router.get('/profile', userAuthMiddleware, async (req, res) => {
+router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: ['id', 'username', 'email', 'avatar_url', 'created_at', 'last_login_at']
@@ -195,7 +300,7 @@ router.get('/profile', userAuthMiddleware, async (req, res) => {
   }
 })
 
-router.put('/profile', userAuthMiddleware, async (req, res) => {
+router.put('/profile', authMiddleware, async (req, res) => {
   try {
     const { username, avatar_url } = req.body
     const user = await User.findByPk(req.user.id)
@@ -235,7 +340,7 @@ router.put('/profile', userAuthMiddleware, async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Update profile error:', error)
+    console.error('Update profile error:', sanitizeError(error))
     res.status(500).json({
       code: 500,
       message: '更新用户信息失败'
@@ -243,7 +348,7 @@ router.put('/profile', userAuthMiddleware, async (req, res) => {
   }
 })
 
-router.post('/change-password', userAuthMiddleware, async (req, res) => {
+router.post('/change-password', authMiddleware, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body
     
@@ -280,7 +385,7 @@ router.post('/change-password', userAuthMiddleware, async (req, res) => {
       message: '密码修改成功'
     })
   } catch (error) {
-    console.error('Change password error:', error)
+    console.error('Change password error:', sanitizeError(error))
     res.status(500).json({
       code: 500,
       message: '密码修改失败'

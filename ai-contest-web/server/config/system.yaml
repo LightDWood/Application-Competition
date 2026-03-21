@@ -1,0 +1,24 @@
+system:
+  id: ai-contest-system
+  name: AI Contest Platform
+  version: 1.0.0
+  metadata:
+    description: AI竞赛平台会话核心服务
+    environment: production
+    maintenanceMode: false
+
+defaultAgentId: default-agent
+defaultProviderId: haier-primary
+
+outputStandards:
+  format: markdown
+  attribution: required
+
+attributionFormat: |
+  ---
+  🤖 Agent: {agentName}
+  📋 Skill: {skillName} v{version}
+  🎯 Mode: {mode}
+
+createdAt: 2024-01-01T00:00:00Z
+updatedAt: 2024-01-01T00:00:00Z

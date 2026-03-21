@@ -52,16 +52,16 @@ const routes = [
   },
   {
     path: '/requirement',
-    name: 'Requirement',
     component: () => import('../views/requirement/Layout.vue'),
-    meta: { 
+    meta: {
       requiresAuth: true,
-      requiresRole: ['user', 'admin'],  // 新增：允许普通用户和管理员访问
+      requiresRole: ['user', 'admin'],
       title: '创意工坊 - AI 副驾驶设计助手'
     },
     children: [
       {
         path: '',
+        name: 'Requirement',
         redirect: '/requirement/sessions'
       },
       {

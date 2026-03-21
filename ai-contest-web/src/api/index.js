@@ -5,12 +5,13 @@ const api = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 })
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token')
+    const token = localStorage.getItem('user_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

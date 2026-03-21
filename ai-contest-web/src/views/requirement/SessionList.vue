@@ -102,13 +102,16 @@ const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 const fetchSessions = async () => {
   loading.value = true
   try {
-    const res = await sessionApi.getList({
+    const userId = getCurrentUserId()
+    const res = await sessionApi.v2.list(userId, {
       page: page.value,
-      pageSize: pageSize.value,
-      search: searchQuery.value || undefined
+      pageSize: pageSize.value
     })
-    
-    if (res.code === 0) {
+
+    if (res.success) {
+      sessions.value = res.data.list
+      total.value = res.data.total
+    } else if (res.code === 0) {
       sessions.value = res.data.list
       total.value = res.data.total
     }
@@ -119,10 +122,25 @@ const fetchSessions = async () => {
   }
 }
 
+const getCurrentUserId = () => {
+  const userInfo = localStorage.getItem('user_info')
+  if (userInfo) {
+    try {
+      return JSON.parse(userInfo).id || 'default-user'
+    } catch {
+      return 'default-user'
+    }
+  }
+  return 'default-user'
+}
+
 const createSession = async () => {
   try {
-    const res = await sessionApi.create({ title: '新会话' })
-    if (res.code === 0) {
+    const userId = getCurrentUserId()
+    const res = await sessionApi.v2.create(userId, null, '新会话')
+    if (res.success) {
+      router.push(`/requirement/session/${res.data.id}`)
+    } else if (res.code === 0) {
       router.push(`/requirement/session/${res.data.id}`)
     }
   } catch (error) {
@@ -146,8 +164,8 @@ const closeEditModal = () => {
 
 const saveSession = async () => {
   try {
-    const res = await sessionApi.update(editForm.value.id, { title: editForm.value.title })
-    if (res.code === 0) {
+    const res = await sessionApi.v2.update(editForm.value.id, { title: editForm.value.title })
+    if (res.success || res.code === 0) {
       await fetchSessions()
       closeEditModal()
     }
@@ -158,10 +176,10 @@ const saveSession = async () => {
 
 const deleteSession = async (id) => {
   if (!confirm('确定要删除这个会话吗？')) return
-  
+
   try {
-    const res = await sessionApi.delete(id)
-    if (res.code === 0) {
+    const res = await sessionApi.v2.delete(id)
+    if (res.success || res.code === 0) {
       await fetchSessions()
     }
   } catch (error) {
