@@ -96,18 +96,23 @@ function checkRequirementConvergence(history) {
   const totalIndicators = Object.keys(convergenceIndicators).length
   const progressPercent = Math.round((completedCount / totalIndicators) * 100)
 
+  const completedItems = Object.entries(convergenceIndicators)
+      .filter(([, completed]) => completed)
+      .map(([item]) => item)
+  const missingItems = Object.entries(convergenceIndicators)
+      .filter(([, completed]) => !completed)
+      .map(([item]) => item)
+
+  const message = completedCount >= 5
+    ? '✅ 需求已收敛完成！您可以输入"归档"生成需求文档。'
+    : `📊 需求收敛进度: ${completedCount}/${totalIndicators} (${progressPercent}%)。还需补充: ${missingItems.join('、')}`
+
   return {
     isConverged: completedCount >= 5,
     progress: progressPercent,
-    completedItems: Object.entries(convergenceIndicators)
-      .filter(([, completed]) => completed)
-      .map(([item]) => item),
-    missingItems: Object.entries(convergenceIndicators)
-      .filter(([, completed]) => !completed)
-      .map(([item]) => item),
-    message: completedCount >= 5
-      ? '✅ 需求已收敛完成！您可以输入"归档"生成需求文档。'
-      : `📊 需求收敛进度: ${completedCount}/${totalIndicators} (${progressPercent}%)。还需补充: ${Object.entries(convergenceIndicators).filter(([,v])=>!v).map(([k])=>k).join('、')}`
+    completedItems: Array.isArray(completedItems) ? completedItems : [],
+    missingItems: Array.isArray(missingItems) ? missingItems : [],
+    message: String(message)
   }
 }
 

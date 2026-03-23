@@ -1,5 +1,5 @@
 import express from 'express'
-import authRoutes from './auth.js'
+// import authRoutes from './auth.js'  // 已移除，统一使用 /user 路由
 import trainingRoutes from './training.js'
 import registrationRoutes from './registration.js'
 import contestRoutes from './contest.js'
@@ -9,7 +9,7 @@ import adminRoutes from './admin.js'
 
 const router = express.Router()
 
-router.use('/auth', authRoutes)
+// router.use('/auth', authRoutes)  // 已移除，统一使用 /user 路由
 router.use('/trainings', trainingRoutes)
 router.use('/registrations', registrationRoutes)
 router.use('/contest', contestRoutes)

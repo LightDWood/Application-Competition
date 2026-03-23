@@ -247,13 +247,20 @@ const scrollToBottom = () => {
 
 const formatContent = (content) => {
   if (!content) return ''
-  if (typeof content !== 'string') {
-    if (content && content.text) {
-      return md.render(content.text)
+
+  if (typeof content === 'object' && content !== null) {
+    if (content.text) {
+      return md.render(String(content.text))
     }
+    console.warn('formatContent received object without text:', content)
+    return ''
+  }
+
+  if (typeof content !== 'string') {
     console.warn('formatContent received non-string content:', typeof content, content)
     return String(content)
   }
+
   return md.render(content)
 }
 
